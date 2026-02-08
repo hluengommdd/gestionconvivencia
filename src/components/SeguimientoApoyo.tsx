@@ -19,6 +19,7 @@ import {
   X
 } from 'lucide-react';
 import { useConvivencia } from '../context/ConvivenciaContext';
+import { useLocalDraft } from '../utils/useLocalDraft';
 
 interface AccionApoyo {
   id: string;
@@ -44,8 +45,8 @@ const PROFESIONALES_LIST = [
 
 const SeguimientoApoyo: React.FC = () => {
   const { expedientes } = useConvivencia();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterTipo, setFilterTipo] = useState<'TODOS' | 'PEDAGOGICO' | 'PSICOSOCIAL'>('TODOS');
+  const [searchTerm, setSearchTerm] = useLocalDraft('apoyo:search', '');
+  const [filterTipo, setFilterTipo] = useLocalDraft<'TODOS' | 'PEDAGOGICO' | 'PSICOSOCIAL'>('apoyo:filter', 'TODOS');
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Datos Mock de Acompañamiento
@@ -77,7 +78,7 @@ const SeguimientoApoyo: React.FC = () => {
   ]);
 
   // Formulario nueva acción
-  const [newAction, setNewAction] = useState({
+  const [newAction, setNewAction, clearNewAction] = useLocalDraft('apoyo:new_action', {
     nnaNombre: '',
     tipo: 'PEDAGOGICO' as 'PEDAGOGICO' | 'PSICOSOCIAL',
     accion: '',
@@ -100,7 +101,7 @@ const SeguimientoApoyo: React.FC = () => {
     };
     setAcciones([action, ...acciones]);
     setIsModalOpen(false);
-    setNewAction({ nnaNombre: '', tipo: 'PEDAGOGICO', accion: '', responsable: '', objetivo: '' });
+    clearNewAction();
   };
 
   const filteredAcciones = useMemo(() => {
@@ -125,20 +126,20 @@ const SeguimientoApoyo: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in zoom-in-95">
           <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden">
-            <header className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <header className="p-4 md:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <div className="flex items-center space-x-4">
                 <div className="p-3 bg-indigo-600 rounded-2xl text-white shadow-lg shadow-indigo-500/20">
                   <Plus className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-slate-900 uppercase">Registrar Acción de Apoyo</h3>
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Gradualidad y Acompañamiento</p>
+                  <h3 className="text-lg md:text-xl font-black text-slate-900 uppercase">Registrar Acción de Apoyo</h3>
+                  <p className="text-[9px] md:text-[10px] text-slate-500 font-bold uppercase tracking-widest">Gradualidad y Acompañamiento</p>
                 </div>
               </div>
               <button onClick={() => setIsModalOpen(false)} className="p-2 text-slate-400 hover:bg-slate-200 rounded-full transition-colors"><X className="w-6 h-6" /></button>
             </header>
             
-            <div className="p-10 space-y-6 overflow-y-auto max-h-[70vh]">
+            <div className="p-4 md:p-10 space-y-6 overflow-y-auto max-h-[70vh]">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estudiante</label>
                 <input 
@@ -150,7 +151,7 @@ const SeguimientoApoyo: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Naturaleza</label>
                   <select 
@@ -201,7 +202,7 @@ const SeguimientoApoyo: React.FC = () => {
               </div>
             </div>
 
-            <footer className="p-8 border-t border-slate-100 bg-slate-50 flex justify-end">
+            <footer className="p-4 md:p-8 border-t border-slate-100 bg-slate-50 flex justify-end">
                <button 
                  onClick={handleSaveAction}
                  className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 active:scale-95"
@@ -214,14 +215,14 @@ const SeguimientoApoyo: React.FC = () => {
       )}
       
       {/* Header Principal */}
-      <header className="px-10 py-8 bg-white border-b border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shrink-0 shadow-sm">
-        <div className="flex items-center space-x-4">
+      <header className="px-4 md:px-10 py-6 md:py-8 bg-white border-b border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shrink-0 shadow-sm">
+        <div className="flex items-center flex-wrap gap-4">
           <div className="p-4 bg-indigo-600 text-white rounded-[1.5rem] shadow-xl shadow-indigo-200">
             <HeartHandshake className="w-7 h-7" />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Seguimiento de Apoyo Estudiantil</h2>
-            <p className="text-indigo-600 font-bold text-[10px] uppercase tracking-widest">Gradualidad y Acompañamiento - Circular 782</p>
+            <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight uppercase">Seguimiento de Apoyo Estudiantil</h2>
+            <p className="text-indigo-600 font-bold text-[9px] md:text-[10px] uppercase tracking-widest">Gradualidad y Acompañamiento - Circular 782</p>
           </div>
         </div>
         <div className="flex items-center space-x-4">
@@ -239,13 +240,13 @@ const SeguimientoApoyo: React.FC = () => {
         </div>
       </header>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         
         {/* Panel Izquierdo: Timeline y Filtros */}
-        <div className="flex-1 flex flex-col overflow-hidden p-10 space-y-8">
+        <div className="flex-1 flex flex-col overflow-hidden p-4 md:p-10 space-y-8">
           
           {/* Barra de Búsqueda y Filtros */}
-          <section className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm flex flex-col md:flex-row gap-6">
+          <section className="bg-white p-4 md:p-6 rounded-[2rem] border border-slate-200 shadow-sm flex flex-col md:flex-row gap-6">
              <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                 <input 
@@ -333,7 +334,7 @@ const SeguimientoApoyo: React.FC = () => {
         </div>
 
         {/* Panel Derecho: Auditoría y Verificación SIE */}
-        <aside className="w-96 bg-white border-l border-slate-200 p-8 flex flex-col shrink-0 space-y-8 overflow-y-auto">
+        <aside className="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-l border-slate-200 p-4 md:p-8 flex flex-col shrink-0 space-y-8 overflow-y-auto">
           
           <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden group">
              <div className="absolute right-0 top-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-indigo-500/20 transition-all"></div>

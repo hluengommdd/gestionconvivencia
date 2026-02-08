@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useConvivencia } from '../context/ConvivenciaContext';
-import { 
+import {
   FileText, 
   X, 
   Eye, 
@@ -16,6 +16,7 @@ import {
   Printer,
   Download
 } from 'lucide-react';
+import { useLocalDraft } from '../utils/useLocalDraft';
 
 interface GeneradorResolucionProps {
   onClose: () => void;
@@ -31,7 +32,11 @@ const FACTORES = [
 const GeneradorResolucion: React.FC<GeneradorResolucionProps> = ({ onClose }) => {
   const { expedienteSeleccionado } = useConvivencia();
   const [showPreview, setShowPreview] = useState(false);
-  const [sections, setSections] = useState({
+  const draftKey = useMemo(
+    () => `resolucion:${expedienteSeleccionado?.id ?? 'none'}:sections`,
+    [expedienteSeleccionado?.id]
+  );
+  const [sections, setSections, clearSections] = useLocalDraft(draftKey, {
     vistos: '',
     considerando: '',
     fundamentos: '',
@@ -82,7 +87,7 @@ const GeneradorResolucion: React.FC<GeneradorResolucionProps> = ({ onClose }) =>
       <div className="bg-white w-full max-w-7xl h-[90vh] rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden border border-slate-200">
         
         {/* Header del Editor */}
-        <header className="px-8 py-6 bg-slate-50 border-b border-slate-200 flex justify-between items-center shrink-0">
+        <header className="px-4 md:px-8 py-4 md:py-6 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
           <div className="flex items-center space-x-4">
             <div className="p-3 bg-slate-900 text-white rounded-2xl">
               <PenTool className="w-6 h-6" />
@@ -92,7 +97,7 @@ const GeneradorResolucion: React.FC<GeneradorResolucionProps> = ({ onClose }) =>
               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Cumplimiento Estándar Circular 782</p>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center flex-wrap gap-3">
             <button 
               onClick={() => setShowPreview(true)}
               className="px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center"
@@ -110,10 +115,10 @@ const GeneradorResolucion: React.FC<GeneradorResolucionProps> = ({ onClose }) =>
         </header>
 
         {/* Cuerpo del Generador */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
           
           {/* Columna Izquierda: Editor */}
-          <div className="flex-1 overflow-y-auto p-10 space-y-8 bg-white custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-8 bg-white custom-scrollbar">
             
             <section className="space-y-4">
               <label className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] flex items-center">
@@ -192,7 +197,7 @@ const GeneradorResolucion: React.FC<GeneradorResolucionProps> = ({ onClose }) =>
           </div>
 
           {/* Columna Derecha: Asistente Normativo */}
-          <div className="w-96 bg-slate-50 border-l border-slate-200 p-8 flex flex-col shrink-0 overflow-y-auto">
+          <div className="w-full lg:w-96 bg-slate-50 border-t lg:border-t-0 lg:border-l border-slate-200 p-4 md:p-8 flex flex-col shrink-0 overflow-y-auto">
             <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-8 flex items-center">
               <ShieldAlert className="w-5 h-5 mr-3 text-blue-600" />
               Asistente Normativo
@@ -269,8 +274,8 @@ const GeneradorResolucion: React.FC<GeneradorResolucionProps> = ({ onClose }) =>
 
       {/* Modal de Vista Previa (Estilo Legal) */}
       {showPreview && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/90 p-10 overflow-y-auto">
-          <div className="bg-white w-full max-w-[850px] min-h-[1100px] p-24 shadow-2xl relative font-serif text-slate-900">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/90 p-4 md:p-10 overflow-y-auto">
+          <div className="bg-white w-full max-w-[850px] min-h-[900px] md:min-h-[1100px] p-6 md:p-24 shadow-2xl relative font-serif text-slate-900">
             {/* Botón cerrar preview */}
             <button 
               onClick={() => setShowPreview(false)}
@@ -313,7 +318,7 @@ const GeneradorResolucion: React.FC<GeneradorResolucionProps> = ({ onClose }) =>
             </div>
 
             {/* Firmas y Timbres */}
-            <div className="mt-24 grid grid-cols-2 gap-20">
+            <div className="mt-24 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20">
               <div className="text-center border-t border-slate-900 pt-4">
                  <p className="font-bold uppercase text-[10px]">Juan Director</p>
                  <p className="text-[9px] uppercase">Director General</p>

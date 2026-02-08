@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { 
   Image as ImageIcon, 
   Video, 
@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useConvivencia } from '../context/ConvivenciaContext';
 import { useLocalDraft } from '../utils/useLocalDraft';
+import FormularioNuevaEvidencia, { NuevaEvidenciaPayload } from './FormularioNuevaEvidencia';
 
 interface Evidencia {
   id: string;
@@ -39,9 +40,12 @@ interface Evidencia {
 
 const GestionEvidencias: React.FC = () => {
   const { expedientes } = useConvivencia();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedEvidenciaId, setSelectedEvidenciaId] = useLocalDraft<string | null>('evidencias:selected', null);
   const [filterFuente, setFilterFuente] = useLocalDraft<'TODAS' | 'ESCUELA' | 'APODERADO' | 'SIE'>('evidencias:filter', 'TODAS');
   const [searchTerm, setSearchTerm] = useLocalDraft('evidencias:search', '');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [archivoNombre, setArchivoNombre] = useState<string | undefined>(undefined);
 
   // Datos Mock de Evidencias
   const [evidencias, setEvidencias] = useState<Evidencia[]>([
@@ -145,10 +149,25 @@ const GestionEvidencias: React.FC = () => {
         <section className="space-y-4">
           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Acciones Rápidas</label>
           <div className="space-y-2">
-            <button className="w-full flex items-center justify-between p-4 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-95 group">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full flex items-center justify-between p-4 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-95 group"
+            >
               <span className="text-xs font-black uppercase">Nueva Evidencia</span>
               <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
             </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setArchivoNombre(file.name);
+                  setIsFormOpen(true);
+                }
+              }}
+            />
             <button className="w-full flex items-center justify-between p-4 bg-white border border-slate-200 text-slate-600 rounded-2xl hover:bg-slate-50 transition-all active:scale-95">
               <span className="text-xs font-black uppercase">Foliar Selección</span>
               <CheckSquare className="w-4 h-4" />
@@ -284,7 +303,7 @@ const GestionEvidencias: React.FC = () => {
       )}
       <aside className={`fixed lg:static inset-x-0 bottom-0 h-[70vh] lg:h-auto lg:w-[450px] bg-white border-t lg:border-t-0 lg:border-l border-slate-200 transition-all duration-500 overflow-y-auto z-50 lg:z-auto ${selectedEvidenciaId ? 'translate-y-0 lg:translate-y-0' : 'translate-y-full lg:translate-y-0 lg:-mr-[450px]'}`}>
         {selectedEvidencia ? (
-          <div className="p-10 space-y-10 animate-in slide-in-from-right-8 duration-500">
+          <div className="p-4 md:p-10 space-y-10 animate-in slide-in-from-right-8 duration-500">
             <header className="flex justify-between items-start">
               <div className="space-y-2">
                  <div className="flex items-center space-x-3">
@@ -349,7 +368,7 @@ const GestionEvidencias: React.FC = () => {
             </section>
 
             {/* Acciones de Ficha */}
-            <div className="grid grid-cols-2 gap-4 pt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
                <button className="flex items-center justify-center space-x-2 py-4 border-2 border-slate-100 rounded-2xl text-[10px] font-black uppercase text-slate-400 hover:border-blue-600 hover:text-blue-600 transition-all active:scale-95">
                   <Download className="w-4 h-4" />
                   <span>Descargar</span>
@@ -372,7 +391,7 @@ const GestionEvidencias: React.FC = () => {
 
       {/* Floating Action Bar (Visible cuando hay selección) */}
       {evidencias.some(e => e.seleccionada) && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-10 py-5 rounded-[2.5rem] shadow-2xl flex items-center space-x-10 animate-in slide-in-from-bottom-10 duration-500 z-40 border border-white/10">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 md:px-10 py-4 md:py-5 rounded-[2.5rem] shadow-2xl flex flex-col md:flex-row items-center gap-4 md:gap-10 animate-in slide-in-from-bottom-10 duration-500 z-40 border border-white/10 max-w-[92vw]">
            <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center">
                  <CheckSquare className="w-5 h-5" />
@@ -382,7 +401,7 @@ const GestionEvidencias: React.FC = () => {
                  <p className="text-sm font-black tracking-tight">{evidencias.filter(e => e.seleccionada).length} Archivos</p>
               </div>
            </div>
-           <div className="h-10 w-[1px] bg-white/10"></div>
+           <div className="hidden md:block h-10 w-[1px] bg-white/10"></div>
            <div className="flex items-center space-x-4">
               <button className="px-6 py-2.5 bg-white text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all active:scale-95">
                  Incluir en Informe Final
@@ -393,6 +412,16 @@ const GestionEvidencias: React.FC = () => {
            </div>
         </div>
       )}
+
+      <FormularioNuevaEvidencia
+        isOpen={isFormOpen}
+        archivoNombre={archivoNombre}
+        onClose={() => setIsFormOpen(false)}
+        onSubmit={(payload: NuevaEvidenciaPayload) => {
+          console.log('Nueva evidencia registrada (mock):', payload);
+          setIsFormOpen(false);
+        }}
+      />
     </main>
   );
 };

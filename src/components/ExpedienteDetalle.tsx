@@ -69,7 +69,7 @@ const ExpedienteDetalle: React.FC = () => {
             </button>
             <div>
               <div className="flex items-center space-x-3 mb-1">
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight">{expedienteSeleccionado.id}</h2>
+                <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">{expedienteSeleccionado.id}</h2>
                 <NormativeBadge gravedad={expedienteSeleccionado.gravedad} />
               </div>
               <p className="text-slate-500 font-bold text-xs flex items-center uppercase tracking-widest">

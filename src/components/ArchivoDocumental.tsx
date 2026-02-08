@@ -12,7 +12,7 @@ const ArchivoDocumental: React.FC = () => {
 
   return (
     <main className="flex-1 flex flex-col bg-slate-50 overflow-hidden animate-in fade-in duration-700">
-      <header className="px-10 py-8 bg-white border-b border-slate-200 flex justify-between items-center">
+      <header className="px-4 md:px-10 py-6 md:py-8 bg-white border-b border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center space-x-4">
           <div className="p-4 bg-blue-600 text-white rounded-[1.5rem] shadow-xl">
             <Library className="w-7 h-7" />
@@ -28,7 +28,7 @@ const ArchivoDocumental: React.FC = () => {
         </div>
       </header>
 
-      <div className="p-10 flex-1 overflow-y-auto space-y-10">
+      <div className="p-4 md:p-10 flex-1 overflow-y-auto space-y-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {carpetas.map((folder) => (
             <div key={folder.name} className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all group cursor-pointer border-b-4 border-b-blue-600/10">
@@ -45,12 +45,12 @@ const ArchivoDocumental: React.FC = () => {
         </div>
 
         <section className="bg-white border border-slate-200 rounded-[2.5rem] shadow-sm overflow-hidden flex flex-col">
-          <div className="p-8 border-b border-slate-100 bg-slate-50/30 flex justify-between items-center">
+          <div className="p-4 md:p-8 border-b border-slate-100 bg-slate-50/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <h3 className="font-black text-slate-800 text-sm tracking-tight uppercase">Documentos Recientes</h3>
-            <div className="flex items-center space-x-4">
-              <div className="relative">
+            <div className="flex items-center space-x-4 w-full md:w-auto">
+              <div className="relative w-full md:w-auto">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-300" />
-                <input type="text" placeholder="Filtrar documentos..." className="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold focus:outline-none" />
+                <input type="text" placeholder="Filtrar documentos..." className="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold focus:outline-none w-full md:w-auto" />
               </div>
               <button className="p-2 text-slate-400 hover:text-blue-600 transition-colors"><Download className="w-4 h-4" /></button>
             </div>
@@ -58,7 +58,7 @@ const ArchivoDocumental: React.FC = () => {
           
           <div className="divide-y divide-slate-50">
             {[1, 2, 3, 4, 5].map(i => (
-              <div key={i} className="px-10 py-5 flex items-center justify-between hover:bg-slate-50 transition-colors group">
+              <div key={i} className="px-4 md:px-10 py-5 flex items-center justify-between hover:bg-slate-50 transition-colors group">
                 <div className="flex items-center space-x-4">
                   <div className="p-2 bg-slate-100 text-slate-400 rounded-lg group-hover:bg-blue-50 group-hover:text-blue-600">
                     <FileText className="w-4 h-4" />

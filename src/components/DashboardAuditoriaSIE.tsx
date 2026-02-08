@@ -159,7 +159,45 @@ const DashboardAuditoriaSIE: React.FC = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="md:hidden p-4 space-y-4">
+          {filteredAudit.map((item) => (
+            <div key={item.id} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase">Expediente</p>
+                  <p className="text-xs font-black text-slate-800 uppercase">{item.nnaNombre}</p>
+                  <p className="font-mono text-[9px] text-blue-500 font-bold">{item.id}</p>
+                </div>
+                <div className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter ${
+                  item.status === 'READY' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                  item.status === 'RISK' ? 'bg-red-50 text-red-700 border border-red-200' :
+                  'bg-amber-50 text-amber-700 border border-amber-200'
+                }`}>
+                  {item.status === 'READY' ? 'Listo' : item.status === 'RISK' ? 'Riesgo' : 'Incompleto'}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] font-black uppercase">
+                <div className={`px-2 py-1 rounded ${item.audit.notificacion ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>Notificación</div>
+                <div className={`px-2 py-1 rounded ${item.audit.descargos ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>Descargos</div>
+                <div className={`px-2 py-1 rounded ${item.audit.evidencias ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>Evidencias</div>
+                <div className={`px-2 py-1 rounded ${item.audit.resolucion ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>Resolución</div>
+              </div>
+              <button
+                onClick={() => setExpedienteSeleccionado(item)}
+                className="w-full mt-2 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase text-slate-600"
+              >
+                Ver detalle
+              </button>
+            </div>
+          ))}
+          {filteredAudit.length === 0 && (
+            <div className="py-12 text-center space-y-3">
+              <ShieldAlert className="w-10 h-10 text-slate-200 mx-auto" />
+              <p className="text-slate-400 font-bold text-xs uppercase tracking-widest italic">No hay resultados.</p>
+            </div>
+          )}
+        </div>
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full min-w-[980px] text-left">
             <thead>
               <tr className="text-[9px] text-slate-400 uppercase tracking-[0.2em] bg-slate-50/50 border-b border-slate-100">
@@ -230,9 +268,9 @@ const DashboardAuditoriaSIE: React.FC = () => {
       </section>
 
       {/* Panel Inferior de Ayuda Técnica */}
-      <section className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden group">
+      <section className="bg-slate-900 rounded-[2.5rem] p-4 md:p-10 text-white relative overflow-hidden group">
         <div className="absolute right-0 top-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] -mr-48 -mt-48 group-hover:bg-blue-600/20 transition-all"></div>
-        <div className="flex flex-col md:flex-row items-center justify-between gap-10 relative z-10">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-10 relative z-10">
           <div className="space-y-4 max-w-2xl">
             <h4 className="text-2xl font-black tracking-tight uppercase">Sugerencia de Mitigación SIE</h4>
             <p className="text-slate-400 text-sm leading-relaxed font-medium">

@@ -69,19 +69,19 @@ const CentroMediacionGCC: React.FC = () => {
   };
 
   return (
-    <main className="flex-1 p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 bg-emerald-50/30 overflow-y-auto">
+    <main className="flex-1 p-4 md:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 bg-emerald-50/30 overflow-y-auto">
       {/* Header Mediación */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center flex-wrap gap-4">
           <div className="p-4 bg-emerald-600 text-white rounded-[1.5rem] shadow-xl shadow-emerald-200">
             <Handshake className="w-8 h-8" />
           </div>
           <div>
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Centro de Mediación Escolar (GCC)</h2>
-            <p className="text-emerald-700 font-bold text-sm">Gestión de Conflictos con Enfoque Formativo - Circular 782</p>
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Centro de Mediación Escolar (GCC)</h2>
+            <p className="text-emerald-700 font-bold text-xs md:text-sm">Gestión de Conflictos con Enfoque Formativo - Circular 782</p>
           </div>
         </div>
-        <div className="bg-white px-6 py-3 rounded-2xl border border-emerald-100 shadow-sm flex items-center space-x-4">
+        <div className="bg-white px-4 md:px-6 py-3 rounded-2xl border border-emerald-100 shadow-sm flex items-center space-x-4">
            <div className="flex -space-x-2">
              {[1,2,3].map(i => (
                <div key={i} className="w-8 h-8 rounded-full bg-emerald-100 border-2 border-white flex items-center justify-center text-[10px] font-black text-emerald-600">
@@ -97,7 +97,7 @@ const CentroMediacionGCC: React.FC = () => {
         
         {/* Columna Izquierda: Listado de Casos */}
         <section className="space-y-6">
-          <div className="bg-white rounded-[2.5rem] border border-emerald-100 shadow-xl shadow-emerald-200/20 p-8">
+          <div className="bg-white rounded-[2.5rem] border border-emerald-100 shadow-xl shadow-emerald-200/20 p-4 md:p-8">
             <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center">
               <Users className="w-5 h-5 mr-3 text-emerald-600" />
               Casos en Conciliación
@@ -107,10 +107,10 @@ const CentroMediacionGCC: React.FC = () => {
                 <button
                   key={exp.id}
                   onClick={() => setSelectedCaseId(exp.id)}
-                  className={`w-full p-6 rounded-[1.5rem] border-2 transition-all text-left flex justify-between items-center group ${
+                  className={`w-full p-4 md:p-6 rounded-[1.5rem] border-2 transition-all text-left flex justify-between items-center group ${
                     selectedCaseId === exp.id 
-                    ? 'border-emerald-500 bg-emerald-50' 
-                    : 'border-slate-50 bg-white hover:border-emerald-200 hover:bg-emerald-50/30'
+                      ? 'border-emerald-500 bg-emerald-50' 
+                      : 'border-slate-50 bg-white hover:border-emerald-200 hover:bg-emerald-50/30'
                   }`}
                 >
                   <div className="overflow-hidden">
@@ -125,10 +125,10 @@ const CentroMediacionGCC: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-emerald-600 text-white p-8 rounded-[2.5rem] shadow-2xl shadow-emerald-500/20 relative overflow-hidden group">
+          <div className="bg-emerald-600 text-white p-4 md:p-8 rounded-[2.5rem] shadow-2xl shadow-emerald-500/20 relative overflow-hidden group">
             <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-all duration-700"></div>
-            <h4 className="text-xl font-black uppercase tracking-tight mb-4">¿Por qué GCC?</h4>
-            <p className="text-[11px] text-emerald-100 font-medium leading-relaxed mb-6">
+            <h4 className="text-lg md:text-xl font-black uppercase tracking-tight mb-4">¿Por qué GCC?</h4>
+            <p className="text-[10px] md:text-[11px] text-emerald-100 font-medium leading-relaxed mb-6">
               La Circular 782 prioriza la resolución pacífica. Un acuerdo logrado mediante GCC extingue la necesidad de medidas punitivas y fomenta la reparación real del daño.
             </p>
             <button className="w-full py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
@@ -140,10 +140,10 @@ const CentroMediacionGCC: React.FC = () => {
         {/* Columna Derecha: Panel de Trabajo de Mediación */}
         <section className="lg:col-span-2 space-y-8">
           {selectedCaseId ? (
-            <div className="bg-white rounded-[2.5rem] border border-emerald-100 shadow-xl shadow-emerald-200/20 p-10 animate-in zoom-in-95 duration-500">
+            <div className="bg-white rounded-[2.5rem] border border-emerald-100 shadow-xl shadow-emerald-200/20 p-4 md:p-10 animate-in zoom-in-95 duration-500">
               
               {/* Notificación de Suspensión */}
-              <div className="mb-10 p-6 bg-blue-50 border-2 border-blue-200 border-dashed rounded-[2rem] flex items-center space-x-6">
+              <div className="mb-10 p-4 md:p-6 bg-blue-50 border-2 border-blue-200 border-dashed rounded-[2rem] flex items-center space-x-6">
                 <div className="p-3 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200">
                   <Clock className="w-6 h-6" />
                 </div>
@@ -200,7 +200,7 @@ const CentroMediacionGCC: React.FC = () => {
 
                 <div className="space-y-4">
                   {compromisos.map((c) => (
-                    <div key={c.id} className="flex items-center justify-between p-6 bg-emerald-50/50 border border-emerald-100 rounded-[1.5rem] group hover:bg-emerald-50 transition-all">
+                    <div key={c.id} className="flex items-center justify-between p-4 md:p-6 bg-emerald-50/50 border border-emerald-100 rounded-[1.5rem] group hover:bg-emerald-50 transition-all">
                       <div className="flex items-center space-x-6">
                         <button className="p-2 bg-white rounded-xl border border-emerald-200 text-emerald-600 shadow-sm hover:bg-emerald-600 hover:text-white transition-all">
                           <CheckCircle className="w-4 h-4" />
@@ -225,7 +225,7 @@ const CentroMediacionGCC: React.FC = () => {
                 </div>
 
                 {/* Formulario para nuevo compromiso */}
-                <div className="bg-slate-50 border border-dashed border-slate-200 rounded-[1.5rem] p-8 space-y-4">
+                <div className="bg-slate-50 border border-dashed border-slate-200 rounded-[1.5rem] p-4 md:p-8 space-y-4">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nuevo Compromiso de Mejora</p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <input 
@@ -263,7 +263,7 @@ const CentroMediacionGCC: React.FC = () => {
               </div>
 
               {/* Acciones Finales */}
-              <div className="flex flex-col md:flex-row gap-6 pt-10 border-t border-slate-100">
+              <div className="flex flex-col md:flex-row gap-6 pt-6 md:pt-10 border-t border-slate-100">
                 <button 
                   className="flex-1 py-5 rounded-[1.5rem] bg-white border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:border-emerald-300 hover:text-emerald-600 transition-all flex items-center justify-center space-x-3"
                 >
@@ -286,13 +286,13 @@ const CentroMediacionGCC: React.FC = () => {
 
             </div>
           ) : (
-            <div className="bg-white rounded-[2.5rem] border border-emerald-100 shadow-xl shadow-emerald-200/10 p-20 flex flex-col items-center justify-center text-center space-y-6 h-full">
+            <div className="bg-white rounded-[2.5rem] border border-emerald-100 shadow-xl shadow-emerald-200/10 p-8 md:p-20 flex flex-col items-center justify-center text-center space-y-6 h-full">
               <div className="w-32 h-32 bg-emerald-50 text-emerald-300 rounded-[3rem] flex items-center justify-center mb-4">
                 <Handshake className="w-16 h-16" />
               </div>
               <div>
-                <h3 className="text-2xl font-black text-slate-800 tracking-tight uppercase">Sala de Conciliación GCC</h3>
-                <p className="text-slate-400 font-bold text-sm mt-2 max-w-sm">
+              <h3 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight uppercase">Sala de Conciliación GCC</h3>
+              <p className="text-slate-400 font-bold text-xs md:text-sm mt-2 max-w-sm">
                   Seleccione un proceso del listado izquierdo para iniciar el diseño del acuerdo reparatorio.
                 </p>
               </div>

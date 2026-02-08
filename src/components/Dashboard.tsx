@@ -52,8 +52,8 @@ const Dashboard: React.FC = () => {
       {/* Header Dashboard */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Panel de Gestión Normativa</h2>
-          <p className="text-slate-500 font-medium text-sm">Control Operativo de Circulares 781 & 782</p>
+          <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Panel de Gestión Normativa</h2>
+          <p className="text-slate-500 font-medium text-xs md:text-sm">Control Operativo de Circulares 781 & 782</p>
         </div>
         <button 
           onClick={() => setIsWizardOpen(true)}
@@ -72,7 +72,7 @@ const Dashboard: React.FC = () => {
           </div>
           <div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-0.5">Casos Activos</p>
-            <h3 className="text-3xl font-black text-slate-800 tracking-tighter">{kpis.activos}</h3>
+            <h3 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tighter">{kpis.activos}</h3>
           </div>
         </div>
 
@@ -82,7 +82,7 @@ const Dashboard: React.FC = () => {
           </div>
           <div>
             <p className="text-[10px] font-black text-red-500 uppercase tracking-[0.15em] mb-0.5">Vencimientos &lt; 48h</p>
-            <h3 className="text-3xl font-black text-red-600 tracking-tighter">{kpis.vencimientosCriticos}</h3>
+            <h3 className="text-2xl md:text-3xl font-black text-red-600 tracking-tighter">{kpis.vencimientosCriticos}</h3>
           </div>
         </div>
 
@@ -92,7 +92,7 @@ const Dashboard: React.FC = () => {
           </div>
           <div>
             <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.15em] mb-0.5">Acuerdos GCC</p>
-            <h3 className="text-3xl font-black text-emerald-700 tracking-tighter">{kpis.acuerdosGCC}</h3>
+            <h3 className="text-2xl md:text-3xl font-black text-emerald-700 tracking-tighter">{kpis.acuerdosGCC}</h3>
           </div>
         </div>
       </section>
@@ -103,7 +103,7 @@ const Dashboard: React.FC = () => {
         <div className="p-4 md:p-8 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-slate-50/40">
           <div className="flex items-center space-x-3">
             <div className="w-3 h-8 bg-blue-600 rounded-full"></div>
-            <h3 className="font-black text-slate-800 text-xl tracking-tight uppercase">Expedientes en Seguimiento</h3>
+            <h3 className="font-black text-slate-800 text-lg md:text-xl tracking-tight uppercase">Expedientes en Seguimiento</h3>
           </div>
           
           <div className="relative w-full md:w-96">
@@ -119,7 +119,44 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Cuerpo de la Tabla */}
-        <div className="overflow-x-auto">
+        <div className="md:hidden p-4 space-y-4">
+          {filteredExpedientes.map((exp) => (
+            <button
+              key={exp.id}
+              onClick={() => setExpedienteSeleccionado(exp)}
+              className="w-full text-left bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 hover:border-blue-200"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100">
+                  {exp.id}
+                </span>
+                <NormativeBadge gravedad={exp.gravedad} />
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-slate-400 uppercase">Estudiante</p>
+                <p className="text-xs font-black text-slate-800 uppercase">{exp.nnaNombre}</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase">Etapa</p>
+                  <p className="text-[10px] font-black text-slate-600 uppercase">{exp.etapa.replace('_', ' ')}</p>
+                </div>
+                <PlazoCounter fechaLimite={exp.plazoFatal} />
+              </div>
+            </button>
+          ))}
+          {filteredExpedientes.length === 0 && (
+            <div className="px-4 py-12 text-center space-y-3">
+              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto text-slate-300 shadow-sm">
+                {searchTerm ? <FilterX className="w-8 h-8" /> : <Files className="w-8 h-8" />}
+              </div>
+              <p className="text-slate-800 font-black text-xs uppercase tracking-widest">
+                {searchTerm ? 'Sin coincidencias' : 'No hay expedientes'}
+              </p>
+            </div>
+          )}
+        </div>
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full min-w-[860px] text-left">
             <thead>
               <tr className="text-[10px] text-slate-400 uppercase tracking-[0.2em] bg-slate-50/50 border-b border-slate-100">
@@ -179,7 +216,7 @@ const Dashboard: React.FC = () => {
           </table>
           
           {filteredExpedientes.length === 0 && (
-            <div className="px-10 py-20 text-center space-y-4 bg-slate-50/20">
+            <div className="px-4 md:px-10 py-12 md:py-20 text-center space-y-4 bg-slate-50/20">
               <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto text-slate-300 shadow-sm">
                 {searchTerm ? <FilterX className="w-10 h-10" /> : <Files className="w-10 h-10" />}
               </div>

@@ -140,24 +140,24 @@ const CalendarioPlazosLegales: React.FC = () => {
   };
 
   return (
-    <main className="flex-1 flex overflow-hidden bg-slate-50">
+    <main className="flex-1 flex flex-col lg:flex-row overflow-hidden bg-slate-50">
       {/* Panel de Calendario */}
-      <div className="flex-1 p-8 flex flex-col space-y-6 overflow-y-auto">
+      <div className="flex-1 p-4 md:p-8 flex flex-col space-y-6 overflow-y-auto">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <div className="flex items-center space-x-3 mb-1">
               <CalendarIcon className="w-6 h-6 text-blue-600" />
-              <h2 className="text-3xl font-black text-slate-900 tracking-tight uppercase">Calendario Normativo</h2>
+              <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight uppercase">Calendario Normativo</h2>
             </div>
-            <p className="text-slate-500 font-bold text-xs uppercase tracking-widest flex items-center">
+            <p className="text-slate-500 font-bold text-[10px] md:text-xs uppercase tracking-widest flex items-center">
               <Clock className="w-4 h-4 mr-2 text-blue-400" />
               Cálculo basado en días hábiles (Chile)
             </p>
           </div>
 
-          <div className="flex items-center bg-white border border-slate-200 rounded-2xl p-1 shadow-sm">
+          <div className="flex items-center bg-white border border-slate-200 rounded-2xl p-1 shadow-sm w-full md:w-auto justify-between">
             <button onClick={handlePrevMonth} className="p-3 hover:bg-slate-100 rounded-xl transition-all"><ChevronLeft className="w-5 h-5" /></button>
-            <div className="px-8 text-sm font-black text-slate-900 uppercase tracking-widest w-40 text-center">
+            <div className="px-4 md:px-8 text-sm font-black text-slate-900 uppercase tracking-widest w-32 md:w-40 text-center">
               {monthName} {year}
             </div>
             <button onClick={handleNextMonth} className="p-3 hover:bg-slate-100 rounded-xl transition-all"><ChevronRight className="w-5 h-5" /></button>
@@ -165,7 +165,7 @@ const CalendarioPlazosLegales: React.FC = () => {
         </header>
 
         {/* Leyenda y Filtros */}
-        <section className="flex flex-wrap gap-4 items-center bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
+        <section className="flex flex-wrap gap-4 items-center bg-white p-4 md:p-6 rounded-[2rem] border border-slate-200 shadow-sm">
            <div className="flex items-center space-x-6 pr-6 border-r border-slate-100">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 rounded-full bg-red-500"></div>
@@ -181,7 +181,7 @@ const CalendarioPlazosLegales: React.FC = () => {
               </div>
            </div>
 
-           <div className="flex items-center space-x-4">
+           <div className="flex items-center flex-wrap gap-4">
               <label className="flex items-center space-x-2 cursor-pointer group">
                 <input type="checkbox" checked={filters.expulsion} onChange={e => setFilters({...filters, expulsion: e.target.checked})} className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500" />
                 <span className="text-[9px] font-black uppercase text-slate-400 group-hover:text-slate-600 transition-colors">Expulsiones</span>
@@ -198,23 +198,25 @@ const CalendarioPlazosLegales: React.FC = () => {
         </section>
 
         {/* Cuadrícula del Calendario */}
-        <div className="bg-slate-200 grid grid-cols-7 gap-[1px] rounded-[2.5rem] border border-slate-200 overflow-hidden shadow-2xl">
-          {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(day => (
-            <div key={day} className="bg-slate-50 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200">
-              {day}
-            </div>
-          ))}
-          {Array.from({ length: startDay }).map((_, i) => (
-            <div key={`empty-${i}`} className="bg-slate-50/50 min-h-[120px]"></div>
-          ))}
-          {Array.from({ length: totalDays }).map((_, i) => renderDay(i + 1))}
+        <div className="overflow-x-auto">
+          <div className="bg-slate-200 grid grid-cols-7 gap-[1px] rounded-[2.5rem] border border-slate-200 overflow-hidden shadow-2xl min-w-[720px]">
+            {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(day => (
+              <div key={day} className="bg-slate-50 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200">
+                {day}
+              </div>
+            ))}
+            {Array.from({ length: startDay }).map((_, i) => (
+              <div key={`empty-${i}`} className="bg-slate-50/50 min-h-[120px]"></div>
+            ))}
+            {Array.from({ length: totalDays }).map((_, i) => renderDay(i + 1))}
+          </div>
         </div>
       </div>
 
       {/* Panel Lateral de Urgencias */}
-      <aside className="w-96 bg-white border-l border-slate-200 p-8 flex flex-col shrink-0 overflow-y-auto space-y-8">
+      <aside className="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-l border-slate-200 p-4 md:p-8 flex flex-col shrink-0 overflow-y-auto space-y-8">
         <div>
-          <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center">
+          <h3 className="text-xs md:text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center">
             <Bell className="w-5 h-5 mr-3 text-red-500 animate-bounce" />
             Urgencias para Hoy
           </h3>
@@ -239,7 +241,7 @@ const CalendarioPlazosLegales: React.FC = () => {
                 </div>
               </div>
             )) : (
-              <div className="p-10 text-center space-y-4 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
+              <div className="p-6 md:p-10 text-center space-y-4 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
                 <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
                   No se registran vencimientos legales para la fecha actual.

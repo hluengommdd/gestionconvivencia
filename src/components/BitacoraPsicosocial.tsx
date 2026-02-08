@@ -20,6 +20,7 @@ import {
   UserCheck
 } from 'lucide-react';
 import { useConvivencia } from '../context/ConvivenciaContext';
+import { useLocalDraft } from '../utils/useLocalDraft';
 
 interface Intervencion {
   id: string;
@@ -44,9 +45,9 @@ interface Derivacion {
 
 const BitacoraPsicosocial: React.FC = () => {
   const { expedientes } = useConvivencia();
-  const [isPrivacyBlurred, setIsPrivacyBlurred] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'REGISTRO' | 'DERIVACIONES' | 'PROTOCOLOS'>('REGISTRO');
+  const [isPrivacyBlurred, setIsPrivacyBlurred] = useLocalDraft('bitacora:privacy', true);
+  const [searchTerm, setSearchTerm] = useLocalDraft('bitacora:search', '');
+  const [activeTab, setActiveTab] = useLocalDraft<'REGISTRO' | 'DERIVACIONES' | 'PROTOCOLOS'>('bitacora:tab', 'REGISTRO');
 
   // Datos Mock de Intervenciones
   const [intervenciones, setIntervenciones] = useState<Intervencion[]>([
@@ -90,12 +91,12 @@ const BitacoraPsicosocial: React.FC = () => {
     <main className="flex-1 flex flex-col bg-slate-50 overflow-hidden animate-in fade-in duration-700">
       
       {/* Banner de Sesión Segura */}
-      <div className="bg-indigo-900 text-indigo-100 px-8 py-2 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] shrink-0">
+      <div className="bg-indigo-900 text-indigo-100 px-4 md:px-8 py-2 flex flex-col md:flex-row items-start md:items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] shrink-0 gap-3">
         <div className="flex items-center space-x-3">
           <Lock className="w-3.5 h-3.5" />
           <span>Sesión Segura: Información Confidencial Protegida (Art. 22 Ley 21.430)</span>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center flex-wrap gap-4">
           <div className="flex items-center space-x-1.5 bg-indigo-800 px-3 py-1 rounded-full">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
             <span>Dupla Psicosocial Activa</span>
@@ -110,10 +111,10 @@ const BitacoraPsicosocial: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         
         {/* Navegación Lateral Interna */}
-        <aside className="w-72 bg-white border-r border-slate-200 p-8 flex flex-col space-y-6">
+        <aside className="w-full lg:w-72 bg-white border-b lg:border-b-0 lg:border-r border-slate-200 p-4 md:p-8 flex flex-col space-y-6">
           <div className="space-y-1">
              <button 
                onClick={() => setActiveTab('REGISTRO')}
@@ -165,11 +166,11 @@ const BitacoraPsicosocial: React.FC = () => {
           
           {/* Listado de Intervenciones */}
           {activeTab === 'REGISTRO' && (
-            <div className="flex-1 overflow-y-auto p-10 space-y-8 bg-slate-50/30 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-8 bg-slate-50/30 custom-scrollbar">
               <header className="flex justify-between items-center mb-6">
                  <div>
-                   <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase">Cronología de Intervenciones</h3>
-                   <p className="text-slate-500 text-xs font-medium">Registro psicosocial histórico y confidencial.</p>
+                   <h3 className="text-lg md:text-xl font-black text-slate-900 tracking-tight uppercase">Cronología de Intervenciones</h3>
+                   <p className="text-[10px] md:text-xs text-slate-500 font-medium">Registro psicosocial histórico y confidencial.</p>
                  </div>
                  <div className="flex items-center space-x-2">
                     <button className="p-2 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-indigo-600"><Filter className="w-4 h-4" /></button>
@@ -178,8 +179,8 @@ const BitacoraPsicosocial: React.FC = () => {
 
               <div className="space-y-6">
                 {filteredIntervenciones.map((int) => (
-                  <div key={int.id} className="bg-white rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/20 p-8 group relative">
-                    <div className="flex items-start justify-between mb-4">
+                  <div key={int.id} className="bg-white rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/20 p-4 md:p-8 group relative">
+                    <div className="flex flex-col md:flex-row items-start md:justify-between mb-4 gap-4">
                       <div className="flex items-center space-x-4">
                         <div className={`p-3 rounded-2xl ${int.tipo === 'ENTREVISTA' ? 'bg-indigo-100 text-indigo-600' : 'bg-amber-100 text-amber-600'}`}>
                           {int.tipo === 'ENTREVISTA' ? <Users className="w-6 h-6" /> : <Clock className="w-6 h-6" />}
@@ -230,15 +231,15 @@ const BitacoraPsicosocial: React.FC = () => {
 
           {/* Panel de Derivaciones */}
           {activeTab === 'DERIVACIONES' && (
-            <div className="flex-1 overflow-y-auto p-10 space-y-8 animate-in slide-in-from-right-4 duration-500">
+            <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-8 animate-in slide-in-from-right-4 duration-500">
               <header>
-                <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase">Redes de Protección & Derivaciones</h3>
-                <p className="text-slate-500 text-xs font-medium mt-1">Gestión de oficios y seguimiento de respuestas externas.</p>
+                <h3 className="text-lg md:text-xl font-black text-slate-900 tracking-tight uppercase">Redes de Protección & Derivaciones</h3>
+                <p className="text-[10px] md:text-xs text-slate-500 font-medium mt-1">Gestión de oficios y seguimiento de respuestas externas.</p>
               </header>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {derivaciones.map((der) => (
-                  <div key={der.id} className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm flex flex-col justify-between">
+                  <div key={der.id} className="bg-white p-4 md:p-8 rounded-[2rem] border border-slate-200 shadow-sm flex flex-col justify-between">
                     <div>
                       <div className="flex justify-between items-start mb-6">
                         <div className="flex items-center space-x-3">
@@ -289,8 +290,8 @@ const BitacoraPsicosocial: React.FC = () => {
 
           {/* Panel de Protocolos de Emergencia */}
           {activeTab === 'PROTOCOLOS' && (
-            <div className="flex-1 overflow-y-auto p-10 space-y-8 animate-in zoom-in-95 duration-500">
-               <header className="bg-red-600 p-8 rounded-[2.5rem] text-white shadow-2xl shadow-red-200 relative overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-8 animate-in zoom-in-95 duration-500">
+               <header className="bg-red-600 p-4 md:p-8 rounded-[2.5rem] text-white shadow-2xl shadow-red-200 relative overflow-hidden">
                   <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
                   <div className="relative z-10 flex items-center space-x-6">
                     <div className="p-4 bg-white/20 rounded-[1.5rem] backdrop-blur-md">
@@ -304,7 +305,7 @@ const BitacoraPsicosocial: React.FC = () => {
                </header>
 
                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="bg-white p-10 rounded-[2.5rem] border border-red-100 shadow-xl shadow-red-500/5 space-y-6">
+                  <div className="bg-white p-4 md:p-10 rounded-[2.5rem] border border-red-100 shadow-xl shadow-red-500/5 space-y-6">
                      <h4 className="text-lg font-black text-red-700 tracking-tight uppercase flex items-center">
                         <Heart className="w-5 h-5 mr-3" /> Maltrato / Abuso Sexual
                      </h4>
@@ -324,7 +325,7 @@ const BitacoraPsicosocial: React.FC = () => {
                      </button>
                   </div>
 
-                  <div className="bg-white p-10 rounded-[2.5rem] border border-blue-100 shadow-xl shadow-blue-500/5 space-y-6">
+                  <div className="bg-white p-4 md:p-10 rounded-[2.5rem] border border-blue-100 shadow-xl shadow-blue-500/5 space-y-6">
                      <h4 className="text-lg font-black text-blue-700 tracking-tight uppercase flex items-center">
                         <UserCheck className="w-5 h-5 mr-3" /> Riesgo Vital / Suicida
                      </h4>

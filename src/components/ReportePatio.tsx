@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
 import { AlertCircle, User, Clock, MapPin, Send, ShieldAlert, CheckCircle } from 'lucide-react';
+import { useLocalDraft } from '../utils/useLocalDraft';
 
 const ReportePatio: React.FC = () => {
   const [enviado, setEnviado] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData, clearFormData] = useLocalDraft('reporte:patio', {
     informante: '',
     estudiante: '',
     lugar: '',
@@ -16,17 +17,18 @@ const ReportePatio: React.FC = () => {
     e.preventDefault();
     setEnviado(true);
     setTimeout(() => setEnviado(false), 3000);
+    clearFormData();
   };
 
   return (
-    <main className="flex-1 p-10 bg-slate-50 flex justify-center items-center overflow-y-auto animate-in fade-in duration-700">
-      <div className="bg-white w-full max-w-2xl rounded-[3rem] border border-slate-200 shadow-2xl p-12 space-y-8">
+    <main className="flex-1 p-4 md:p-10 bg-slate-50 flex justify-center items-center overflow-y-auto animate-in fade-in duration-700">
+      <div className="bg-white w-full max-w-2xl rounded-[3rem] border border-slate-200 shadow-2xl p-6 md:p-12 space-y-8">
         <header className="text-center space-y-2">
-          <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-[2rem] flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-10 h-10" />
+          <div className="w-16 h-16 md:w-20 md:h-20 bg-amber-100 text-amber-600 rounded-[2rem] flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 md:w-10 md:h-10" />
           </div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight uppercase">Reporte de Incidente en Patio</h2>
-          <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em]">Entrada Rápida - Vigilancia y Convivencia</p>
+          <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight uppercase">Reporte de Incidente en Patio</h2>
+          <p className="text-slate-400 font-bold text-[9px] md:text-[10px] uppercase tracking-[0.2em]">Entrada Rápida - Vigilancia y Convivencia</p>
         </header>
 
         {enviado ? (
@@ -37,7 +39,7 @@ const ReportePatio: React.FC = () => {
           </div>
         ) : (
           <form onSubmit={handleEnviar} className="space-y-6">
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center">
                   <User className="w-3 h-3 mr-2" /> Informante (Nombre/Cargo)

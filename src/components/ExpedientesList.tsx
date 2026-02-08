@@ -37,8 +37,8 @@ const ExpedientesList: React.FC = () => {
             <Database className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Archivo Maestro de Expedientes</h2>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Base de datos integral de procesos disciplinarios</p>
+            <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight uppercase">Archivo Maestro de Expedientes</h2>
+            <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Base de datos integral de procesos disciplinarios</p>
           </div>
         </div>
         <div className="flex items-center space-x-3">
@@ -74,7 +74,41 @@ const ExpedientesList: React.FC = () => {
         </section>
 
         <div className="flex-1 bg-white border border-slate-200 rounded-[2.5rem] shadow-sm overflow-hidden flex flex-col">
-          <div className="overflow-x-auto">
+          <div className="md:hidden p-4 space-y-4">
+            {filteredExpedientes.map((exp) => (
+              <button
+                key={exp.id}
+                onClick={() => setExpedienteSeleccionado(exp)}
+                className="w-full text-left bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 hover:border-blue-200"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase">Folio</p>
+                    <p className="text-xs font-black text-slate-800">{exp.id}</p>
+                  </div>
+                  <NormativeBadge gravedad={exp.gravedad} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase">Estudiante</p>
+                  <p className="text-xs font-black text-slate-800 uppercase">{exp.nnaNombre}</p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase">Etapa</p>
+                    <p className="text-[10px] font-black text-slate-600 uppercase">{exp.etapa.replace('_', ' ')}</p>
+                  </div>
+                  <PlazoCounter fechaLimite={exp.plazoFatal} />
+                </div>
+              </button>
+            ))}
+            {filteredExpedientes.length === 0 && (
+              <div className="py-12 text-center">
+                <Archive className="w-12 h-12 text-slate-200 mx-auto mb-3" />
+                <p className="text-slate-400 font-black text-xs uppercase tracking-widest">No se encontraron expedientes</p>
+              </div>
+            )}
+          </div>
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full min-w-[860px] text-left">
               <thead>
                 <tr className="text-[10px] text-slate-400 uppercase tracking-[0.2em] bg-slate-50/50 border-b border-slate-100">

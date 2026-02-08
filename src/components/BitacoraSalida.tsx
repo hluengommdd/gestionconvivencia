@@ -38,7 +38,40 @@ const BitacoraSalida: React.FC = () => {
         </section>
 
         <div className="bg-white border border-slate-200 rounded-[2.5rem] shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="md:hidden p-4 space-y-4">
+            {registros.map((reg) => (
+              <div key={reg.id} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase">Folio</p>
+                    <p className="text-xs font-black text-slate-800">{reg.id}</p>
+                  </div>
+                  <span className="text-[10px] font-black text-slate-500">{reg.hora}</span>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase">Estudiante</p>
+                  <p className="text-xs font-black text-slate-800 uppercase">{reg.nna}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase">Motivo</p>
+                  <span className="px-2.5 py-1 bg-slate-100 rounded-lg text-[9px] font-black text-slate-500 uppercase tracking-tighter">
+                    {reg.motivo}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase">Adulto Responsable</p>
+                    <p className="text-xs font-black text-slate-800 uppercase">{reg.retiradoPor}</p>
+                    <p className="text-[9px] font-bold text-slate-400 font-mono">{reg.rut}</p>
+                  </div>
+                  <button className="p-2 bg-emerald-50 text-emerald-600 rounded-lg border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all">
+                    <FileText className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full min-w-[860px] text-left">
             <thead>
               <tr className="text-[10px] text-slate-400 uppercase tracking-[0.2em] bg-slate-50/50 border-b border-slate-100">
