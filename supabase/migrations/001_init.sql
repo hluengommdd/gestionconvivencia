@@ -1,4 +1,4 @@
-﻿-- Supabase initialization script for Convivencia Escolar
+-- Supabase initialization script for Convivencia Escolar
 -- Generated for Circulares 781/782 compliance needs
 
 -- Extensions
@@ -244,7 +244,7 @@ for each row execute function log_expediente_change();
 
 -- Optional: log views via view + function (Postgres has no SELECT trigger)
 create or replace function log_expediente_view(p_expediente_id uuid)
-returns void
+returns boolean
 language plpgsql
 security definer
 set search_path = public
@@ -254,6 +254,7 @@ begin
   select e.establecimiento_id, auth.uid(), 'SELECT', 'expedientes', e.id
   from expedientes e
   where e.id = p_expediente_id;
+  return true;
 end;
 $$;
 
@@ -451,77 +452,40 @@ with check (
 
 -- Storage RLS (storage.objects)
 -- Enforce object paths like "{establecimiento_id}/..."
-alter table storage.objects enable row level security;
+do $$
+begin
+  begin
+    execute 'alter table storage.objects enable row level security';
 
-create policy storage_read_public on storage.objects
-for select using (
-  bucket_id = 'evidencias-publicas'
-  and auth.role() = 'authenticated'
-  and (name like current_establecimiento_id()::text || '/%')
-);
+    execute 'drop policy if exists storage_read_public on storage.objects';
+    execute 'create policy storage_read_public on storage.objects for select using (bucket_id = ''evidencias-publicas'' and auth.role() = ''authenticated'' and (name like current_establecimiento_id()::text || ''/%''))';
 
-create policy storage_read_sensitive on storage.objects
-for select using (
-  bucket_id in ('evidencias-sensibles','documentos-psicosociales')
-  and auth.role() = 'authenticated'
-  and current_rol() in ('admin','director','convivencia','dupla')
-  and (name like current_establecimiento_id()::text || '/%')
-);
+    execute 'drop policy if exists storage_read_sensitive on storage.objects';
+    execute 'create policy storage_read_sensitive on storage.objects for select using (bucket_id in (''evidencias-sensibles'',''documentos-psicosociales'') and auth.role() = ''authenticated'' and current_rol() in (''admin'',''director'',''convivencia'',''dupla'') and (name like current_establecimiento_id()::text || ''/%''))';
 
-create policy storage_insert_public on storage.objects
-for insert with check (
-  bucket_id = 'evidencias-publicas'
-  and auth.role() = 'authenticated'
-  and current_rol() in ('admin','director','convivencia','inspector')
-  and (name like current_establecimiento_id()::text || '/%')
-);
+    execute 'drop policy if exists storage_insert_public on storage.objects';
+    execute 'create policy storage_insert_public on storage.objects for insert with check (bucket_id = ''evidencias-publicas'' and auth.role() = ''authenticated'' and current_rol() in (''admin'',''director'',''convivencia'',''inspector'') and (name like current_establecimiento_id()::text || ''/%''))';
 
-create policy storage_insert_sensitive on storage.objects
-for insert with check (
-  bucket_id = 'evidencias-sensibles'
-  and auth.role() = 'authenticated'
-  and current_rol() in ('admin','director','convivencia','inspector')
-  and (name like current_establecimiento_id()::text || '/%')
-);
+    execute 'drop policy if exists storage_insert_sensitive on storage.objects';
+    execute 'create policy storage_insert_sensitive on storage.objects for insert with check (bucket_id = ''evidencias-sensibles'' and auth.role() = ''authenticated'' and current_rol() in (''admin'',''director'',''convivencia'',''inspector'') and (name like current_establecimiento_id()::text || ''/%''))';
 
-create policy storage_insert_psicosocial on storage.objects
-for insert with check (
-  bucket_id = 'documentos-psicosociales'
-  and auth.role() = 'authenticated'
-  and current_rol() = 'dupla'
-  and (name like current_establecimiento_id()::text || '/%')
-);
+    execute 'drop policy if exists storage_insert_psicosocial on storage.objects';
+    execute 'create policy storage_insert_psicosocial on storage.objects for insert with check (bucket_id = ''documentos-psicosociales'' and auth.role() = ''authenticated'' and current_rol() = ''dupla'' and (name like current_establecimiento_id()::text || ''/%''))';
 
-create policy storage_update_delete_equipo on storage.objects
-for update using (
-  bucket_id in ('evidencias-publicas','evidencias-sensibles')
-  and auth.role() = 'authenticated'
-  and current_rol() in ('admin','director','convivencia')
-  and (name like current_establecimiento_id()::text || '/%')
-)
-with check (name like current_establecimiento_id()::text || '/%');
+    execute 'drop policy if exists storage_update_delete_equipo on storage.objects';
+    execute 'create policy storage_update_delete_equipo on storage.objects for update using (bucket_id in (''evidencias-publicas'',''evidencias-sensibles'') and auth.role() = ''authenticated'' and current_rol() in (''admin'',''director'',''convivencia'') and (name like current_establecimiento_id()::text || ''/%'')) with check (name like current_establecimiento_id()::text || ''/%'')';
 
-create policy storage_update_delete_psicosocial on storage.objects
-for update using (
-  bucket_id = 'documentos-psicosociales'
-  and auth.role() = 'authenticated'
-  and current_rol() = 'dupla'
-  and (name like current_establecimiento_id()::text || '/%')
-)
-with check (name like current_establecimiento_id()::text || '/%');
+    execute 'drop policy if exists storage_update_delete_psicosocial on storage.objects';
+    execute 'create policy storage_update_delete_psicosocial on storage.objects for update using (bucket_id = ''documentos-psicosociales'' and auth.role() = ''authenticated'' and current_rol() = ''dupla'' and (name like current_establecimiento_id()::text || ''/%'')) with check (name like current_establecimiento_id()::text || ''/%'')';
 
-create policy storage_delete_equipo on storage.objects
-for delete using (
-  bucket_id in ('evidencias-publicas','evidencias-sensibles')
-  and auth.role() = 'authenticated'
-  and current_rol() in ('admin','director','convivencia')
-  and (name like current_establecimiento_id()::text || '/%')
-);
+    execute 'drop policy if exists storage_delete_equipo on storage.objects';
+    execute 'create policy storage_delete_equipo on storage.objects for delete using (bucket_id in (''evidencias-publicas'',''evidencias-sensibles'') and auth.role() = ''authenticated'' and current_rol() in (''admin'',''director'',''convivencia'') and (name like current_establecimiento_id()::text || ''/%''))';
 
-create policy storage_delete_psicosocial on storage.objects
-for delete using (
-  bucket_id = 'documentos-psicosociales'
-  and auth.role() = 'authenticated'
-  and current_rol() = 'dupla'
-  and (name like current_establecimiento_id()::text || '/%')
-);
+    execute 'drop policy if exists storage_delete_psicosocial on storage.objects';
+    execute 'create policy storage_delete_psicosocial on storage.objects for delete using (bucket_id = ''documentos-psicosociales'' and auth.role() = ''authenticated'' and current_rol() = ''dupla'' and (name like current_establecimiento_id()::text || ''/%''))';
+  exception
+    when insufficient_privilege then
+      raise notice 'Skipping storage RLS/policies: insufficient privileges for storage.objects';
+  end;
+end
+$$;

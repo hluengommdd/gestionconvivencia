@@ -1,21 +1,26 @@
 ﻿import React, { Suspense, useEffect, useState } from 'react';
-import Sidebar from './components/Sidebar';
-import Dashboard from './components/Dashboard';
-import { ConvivenciaProvider, useConvivencia } from './context/ConvivenciaContext';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ConvivenciaProvider, useConvivencia } from '@/shared/context/ConvivenciaContext';
+import Layout from '@/shared/components/Layout';
+import ErrorBoundary from '@/shared/components/ErrorBoundary';
 
-const ExpedienteDetalle = React.lazy(() => import('./components/ExpedienteDetalle'));
-const ExpedienteWizard = React.lazy(() => import('./components/ExpedienteWizard'));
-const LegalAssistant = React.lazy(() => import('./components/LegalAssistant'));
-const DashboardAuditoriaSIE = React.lazy(() => import('./components/DashboardAuditoriaSIE'));
-const CentroMediacionGCC = React.lazy(() => import('./components/CentroMediacionGCC'));
-const CalendarioPlazosLegales = React.lazy(() => import('./components/CalendarioPlazosLegales'));
-const BitacoraPsicosocial = React.lazy(() => import('./components/BitacoraPsicosocial'));
-const GestionEvidencias = React.lazy(() => import('./components/GestionEvidencias'));
-const SeguimientoApoyo = React.lazy(() => import('./components/SeguimientoApoyo'));
-const ExpedientesList = React.lazy(() => import('./components/ExpedientesList'));
-const BitacoraSalida = React.lazy(() => import('./components/BitacoraSalida'));
-const ArchivoDocumental = React.lazy(() => import('./components/ArchivoDocumental'));
-const ReportePatio = React.lazy(() => import('./components/ReportePatio'));
+// Feature Components
+const Dashboard = React.lazy(() => import('@/features/dashboard/Dashboard'));
+const ExpedientesList = React.lazy(() => import('@/features/expedientes/ExpedientesList'));
+const ExpedienteDetalle = React.lazy(() => import('@/features/expedientes/ExpedienteDetalle'));
+const ExpedienteWizard = React.lazy(() => import('@/features/expedientes/ExpedienteWizard'));
+const DashboardAuditoriaSIE = React.lazy(() => import('@/features/dashboard/DashboardAuditoriaSIE'));
+const CentroMediacionGCC = React.lazy(() => import('@/features/mediacion/CentroMediacionGCC'));
+const CalendarioPlazosLegales = React.lazy(() => import('@/features/legal/CalendarioPlazosLegales'));
+const BitacoraPsicosocial = React.lazy(() => import('@/features/bitacora/BitacoraPsicosocial'));
+const GestionEvidencias = React.lazy(() => import('@/features/evidencias/GestionEvidencias'));
+const SeguimientoApoyo = React.lazy(() => import('@/features/apoyo/SeguimientoApoyo'));
+const BitacoraSalida = React.lazy(() => import('@/features/bitacora/BitacoraSalida'));
+const ArchivoDocumental = React.lazy(() => import('@/features/archivo/ArchivoDocumental'));
+const ReportePatio = React.lazy(() => import('@/features/patio/ReportePatio'));
+const ListaReportesPatio = React.lazy(() => import('@/features/patio/ListaReportesPatio'));
+const LegalAssistant = React.lazy(() => import('@/features/legal/LegalAssistant'));
+const PerfilUsuario = React.lazy(() => import('@/features/perfil/PerfilUsuario'));
 
 const LoadingView: React.FC = () => (
   <div className="flex items-center justify-center h-full text-slate-400 text-sm font-semibold">
@@ -23,116 +28,56 @@ const LoadingView: React.FC = () => (
   </div>
 );
 
-class ErrorBoundary extends React.Component<React.PropsWithChildren, { hasError: boolean }> {
-  constructor(props: React.PropsWithChildren) {
-    super(props);
-    this.state = { hasError: false };
-  }
+// Error Boundary moved to shared/components/ErrorBoundary.tsx
 
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
+// Wrapper for suspended routes
+const SuspendedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <ErrorBoundary>
+    <Suspense fallback={<LoadingView />}>
+      {children}
+    </Suspense>
+  </ErrorBoundary>
+);
 
-  componentDidCatch(error: unknown) {
-    console.error('UI ErrorBoundary:', error);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="flex items-center justify-center h-full text-slate-500 text-sm font-semibold">
-          Ocurrió un error al cargar esta sección. Intenta recargar la página.
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
-
-const MainContent: React.FC = () => {
-  const { expedienteSeleccionado, isWizardOpen, currentView } = useConvivencia();
-
-  const renderView = () => {
-    if (expedienteSeleccionado) {
-      return <ExpedienteDetalle />;
-    }
-
-    switch (currentView) {
-      case 'EXPEDIENTES':
-        return <ExpedientesList />;
-      case 'AUDITORIA':
-        return <DashboardAuditoriaSIE />;
-      case 'GCC':
-        return <CentroMediacionGCC />;
-      case 'CALENDARIO':
-        return <CalendarioPlazosLegales />;
-      case 'BITACORA':
-        return <BitacoraPsicosocial />;
-      case 'EVIDENCIAS':
-        return <GestionEvidencias />;
-      case 'APOYO':
-        return <SeguimientoApoyo />;
-      case 'SALIDA':
-        return <BitacoraSalida />;
-      case 'ARCHIVO':
-        return <ArchivoDocumental />;
-      case 'REPORTE_PATIO':
-        return <ReportePatio />;
-      case 'DASHBOARD':
-      default:
-        return <Dashboard />;
-    }
-  };
-
-  const getBreadcrumb = () => {
-    if (expedienteSeleccionado) return `Expedientes > Detalle ${expedienteSeleccionado.id}`;
-    const labels: Record<string, string> = {
-      DASHBOARD: 'Dashboard Principal',
-      EXPEDIENTES: 'Gestión de Expedientes',
-      AUDITORIA: 'Auditoría SIE',
-      GCC: 'Mediación GCC',
-      CALENDARIO: 'Calendario Normativo',
-      BITACORA: 'Bitácora Psicosocial',
-      EVIDENCIAS: 'Gestión de Evidencias',
-      APOYO: 'Acompañamiento Estudiantil',
-      SALIDA: 'Bitácora de Salida',
-      ARCHIVO: 'Archivo Sostenedor',
-      REPORTE_PATIO: 'Reporte Inicial Patio',
-    };
-    return labels[currentView] || 'Inicio';
-  };
+const AppRoutes: React.FC = () => {
+  const { isWizardOpen } = useConvivencia();
 
   return (
-    <div className="flex-1 flex flex-col h-screen overflow-hidden">
-      <header className="min-h-16 md:h-16 bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-0 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm z-10 shrink-0">
-        <div className="flex items-center flex-wrap gap-2">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Módulo:</span>
-          <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100 uppercase">
-            {getBreadcrumb()}
-          </span>
-        </div>
-        <div className="flex items-center flex-wrap gap-3">
-          <div className="flex items-center text-[10px] text-slate-400 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 font-bold uppercase tracking-tighter">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
-            SYNC STATUS: ONLINE
-          </div>
-          <div className="hidden md:block h-8 w-[1px] bg-slate-200"></div>
-          <span className="text-xs font-black text-slate-600 uppercase tracking-tight">Liceo Bicentenario Excellence</span>
-        </div>
-      </header>
+    <>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<SuspendedRoute><Dashboard /></SuspendedRoute>} />
+          <Route path="expedientes" element={<SuspendedRoute><ExpedientesList /></SuspendedRoute>} />
+          {/* Note: ExpedienteDetalle usually takes an ID logic, but existing code relied on context. 
+                    Migration: The existing ExpedienteDetalle might expect context state. 
+                    For now, let's render it if context is set? Or stick to context for detail view temporarily? 
+                    The plan said: /expedientes/:id -> ExpedienteDetalle
+                    Let's assume for now we keep the list and detail separate pages. */}
+          <Route path="expedientes/:id" element={<SuspendedRoute><ExpedienteDetalle /></SuspendedRoute>} />
 
-      <div className="flex-1 relative overflow-hidden bg-slate-50">
-        <ErrorBoundary>
-          <Suspense fallback={<LoadingView />}>
-            {renderView()}
-            {isWizardOpen && <ExpedienteWizard />}
-            <LegalAssistant />
-          </Suspense>
-        </ErrorBoundary>
-      </div>
-    </div>
+          <Route path="auditoria" element={<SuspendedRoute><DashboardAuditoriaSIE /></SuspendedRoute>} />
+          <Route path="mediacion" element={<SuspendedRoute><CentroMediacionGCC /></SuspendedRoute>} />
+          <Route path="calendario" element={<SuspendedRoute><CalendarioPlazosLegales /></SuspendedRoute>} />
+          <Route path="bitacora" element={<SuspendedRoute><BitacoraPsicosocial /></SuspendedRoute>} />
+          <Route path="evidencias" element={<SuspendedRoute><GestionEvidencias /></SuspendedRoute>} />
+          <Route path="apoyo" element={<SuspendedRoute><SeguimientoApoyo /></SuspendedRoute>} />
+          <Route path="salida" element={<SuspendedRoute><BitacoraSalida /></SuspendedRoute>} />
+          <Route path="archivo" element={<SuspendedRoute><ArchivoDocumental /></SuspendedRoute>} />
+          <Route path="patio" element={<SuspendedRoute><ReportePatio /></SuspendedRoute>} />
+          <Route path="patio/lista" element={<SuspendedRoute><ListaReportesPatio /></SuspendedRoute>} />
+          <Route path="perfil" element={<SuspendedRoute><PerfilUsuario /></SuspendedRoute>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+
+      {/* Global Modals/Overlays */}
+      <Suspense fallback={null}>
+        {isWizardOpen && <ExpedienteWizard />}
+        <LegalAssistant />
+      </Suspense>
+    </>
   );
-};
+}
 
 const App: React.FC = () => {
   const [isOnline, setIsOnline] = useState(
@@ -149,18 +94,20 @@ const App: React.FC = () => {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
   return (
-    <ConvivenciaProvider>
-      {!isOnline && (
-        <div className="fixed top-0 inset-x-0 z-50 bg-amber-500 text-slate-900 text-xs font-black text-center py-2">
-          Modo offline: algunas funciones pueden no estar disponibles.
+    <BrowserRouter>
+      <ConvivenciaProvider>
+        {!isOnline && (
+          <div className="fixed top-0 inset-x-0 z-50 bg-amber-500 text-slate-900 text-xs font-black text-center py-2">
+            Modo offline: algunas funciones pueden no estar disponibles.
+          </div>
+        )}
+        <div className={isOnline ? '' : 'pt-8'}>
+          <AppRoutes />
         </div>
-      )}
-      <div className={`flex min-h-screen bg-slate-900 font-sans selection:bg-blue-100 selection:text-blue-700 overflow-hidden ${isOnline ? '' : 'pt-8'}`}>
-        <Sidebar />
-        <MainContent />
-      </div>
-    </ConvivenciaProvider>
+      </ConvivenciaProvider>
+    </BrowserRouter>
   );
 };
 

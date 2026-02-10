@@ -1,4 +1,4 @@
-﻿-- Business day helpers using feriados_chile
+-- Business day helpers using feriados_chile
 
 create or replace function es_dia_habil(p_fecha date)
 returns boolean
