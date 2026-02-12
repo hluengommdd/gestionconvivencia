@@ -20,16 +20,19 @@ import {
   Users,
   Building
 } from 'lucide-react';
-import type { ExpedienteCompleto, EstadoExpediente, TipoFalta, GravedadFalta } from '@/types';
+import type { ExpedienteCompleto, EtapaProceso, TipoFalta, GravedadFalta } from '@/types';
 import { calcularDiasRestantes, formatearFecha } from '@/shared/utils/plazos';
 import { useAuth } from '@/shared/hooks';
 
-const ESTADO_LABELS: Record<EstadoExpediente, { label: string }> = {
-  identificado: { label: 'Identificado' },
-  en_tramite: { label: 'En Trámite' },
-  derivado: { label: 'Derivado' },
-  cerrado: { label: 'Cerrado' },
-  archivado: { label: 'Archivado' }
+const ESTADO_LABELS: Record<EtapaProceso, { label: string }> = {
+  INICIO: { label: 'Inicio' },
+  NOTIFICADO: { label: 'Notificado' },
+  DESCARGOS: { label: 'Descargos' },
+  INVESTIGACION: { label: 'Investigación' },
+  RESOLUCION_PENDIENTE: { label: 'Resolución Pendiente' },
+  RECONSIDERACION: { label: 'Reconsideración' },
+  CERRADO_SANCION: { label: 'Cerrado Sanción' },
+  CERRADO_GCC: { label: 'Cerrado GCC' }
 };
 
 const GRAVEDAD_LABELS: Record<GravedadFalta, { label: string }> = {
@@ -77,7 +80,7 @@ export const ExpedienteDetail: React.FC<Props> = ({
             <div className="flex items-center gap-3 mb-2">
               <span className="text-xs font-black uppercase tracking-widest opacity-80">Expediente</span>
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/20 border border-white/30">
-                {ESTADO_LABELS[expediente.estado].label}
+                {ESTADO_LABELS[expediente.etapa].label}
               </span>
             </div>
             <h1 className="text-2xl font-black mb-1">{expediente.folio}</h1>

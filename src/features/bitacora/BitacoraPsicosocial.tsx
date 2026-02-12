@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Lock,
   ShieldCheck,
@@ -19,6 +20,8 @@ import {
 } from 'lucide-react';
 import { useLocalDraft } from '@/shared/utils/useLocalDraft';
 import { supabase } from '@/shared/lib/supabaseClient';
+import NuevaIntervencionModal from '@/features/dashboard/NuevaIntervencionModal';
+import RegistrarDerivacionModal from '@/features/dashboard/RegistrarDerivacionModal';
 
 interface Intervencion {
   id: string;
@@ -42,10 +45,23 @@ interface Derivacion {
 }
 
 const BitacoraPsicosocial: React.FC = () => {
-  // const { expedientes } = useConvivencia(); // Removed unused
+  const location = useLocation();
   const [isPrivacyBlurred, setIsPrivacyBlurred] = useLocalDraft('bitacora:privacy', true);
   const [searchTerm, setSearchTerm] = useLocalDraft('bitacora:search', '');
   const [activeTab, setActiveTab] = useLocalDraft<'REGISTRO' | 'DERIVACIONES' | 'PROTOCOLOS'>('bitacora:tab', 'REGISTRO');
+  const [showIntervencionModal, setShowIntervencionModal] = useState(false);
+  const [showDerivacionModal, setShowDerivacionModal] = useState(false);
+
+  // Detectar rutas del submenú y abrir modales
+  useEffect(() => {
+    if (location.pathname === '/bitacora/intervencion') {
+      setShowIntervencionModal(true);
+      setActiveTab('REGISTRO');
+    } else if (location.pathname === '/bitacora/derivacion') {
+      setShowDerivacionModal(true);
+      setActiveTab('DERIVACIONES');
+    }
+  }, [location.pathname, setActiveTab]);
 
   // Datos Mock de Intervenciones
   const mockIntervenciones: Intervencion[] = [
@@ -201,10 +217,20 @@ const BitacoraPsicosocial: React.FC = () => {
             </button>
           </div>
 
-          <div className="pt-6 border-t border-slate-100">
-            <button className="w-full flex items-center justify-center space-x-2 py-4 bg-emerald-50 text-emerald-700 border-2 border-emerald-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all active:scale-95 shadow-sm">
+          <div className="pt-6 border-t border-slate-100 space-y-3">
+            <button
+              onClick={() => setShowIntervencionModal(true)}
+              className="w-full flex items-center space-x-3 px-4 py-3 bg-emerald-50 text-emerald-700 border-2 border-emerald-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all active:scale-95 shadow-sm cursor-pointer"
+            >
               <Plus className="w-4 h-4" />
               <span>Nueva Intervención</span>
+            </button>
+            <button
+              onClick={() => setShowDerivacionModal(true)}
+              className="w-full flex items-center space-x-3 px-4 py-3 bg-violet-50 text-violet-700 border-2 border-violet-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-violet-600 hover:text-white hover:border-violet-600 transition-all active:scale-95 shadow-sm cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Registrar Derivación</span>
             </button>
           </div>
 
@@ -299,34 +325,26 @@ const BitacoraPsicosocial: React.FC = () => {
                 <p className="text-[10px] md:text-xs text-slate-500 font-medium mt-1">Gestión de oficios y seguimiento de respuestas externas.</p>
               </header>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid gap-4">
                 {derivaciones.map((der) => (
-                  <div key={der.id} className="bg-white p-4 md:p-8 rounded-[2rem] border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-start mb-6">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
-                            <ExternalLink className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-black text-slate-900 uppercase">{der.nnaNombre}</p>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enviado a: <span className="text-indigo-600">{der.institucion}</span></p>
-                          </div>
+                  <div key={der.id} className="bg-white p-4 md:p-8 rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/10">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                      <div className="flex items-start gap-4">
+                        <div className={`p-3 rounded-2xl ${der.estado === 'PENDIENTE' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                          <ExternalLink className="w-6 h-6" />
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase ${der.estado === 'RESPONDIDO' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
+                        <div>
+                          <h4 className="text-sm font-black text-slate-900 uppercase">{der.nnaNombre}</h4>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+                            {der.institucion} • {der.fechaEnvio}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-2 font-medium">{der.numeroOficio}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${der.estado === 'PENDIENTE' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
                           {der.estado}
                         </span>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-100">
-                          <span className="text-[10px] font-black text-slate-400 uppercase">N° Oficio</span>
-                          <span className="text-[10px] font-black text-slate-700 font-mono uppercase">{der.numeroOficio}</span>
-                        </div>
-                        <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-100">
-                          <span className="text-[10px] font-black text-slate-400 uppercase">Fecha Envío</span>
-                          <span className="text-[10px] font-black text-slate-700 uppercase">{der.fechaEnvio}</span>
-                        </div>
                       </div>
                     </div>
 
@@ -337,7 +355,10 @@ const BitacoraPsicosocial: React.FC = () => {
                   </div>
                 ))}
 
-                <button className="bg-indigo-50 border-2 border-indigo-200 border-dashed rounded-[2rem] p-8 flex flex-col items-center justify-center text-center space-y-4 hover:bg-indigo-100 transition-all group">
+                <button
+                  onClick={() => setShowDerivacionModal(true)}
+                  className="bg-indigo-50 border-2 border-indigo-200 border-dashed rounded-[2rem] p-8 flex flex-col items-center justify-center text-center space-y-4 hover:bg-indigo-100 transition-all group cursor-pointer"
+                >
                   <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-indigo-600 shadow-sm group-hover:scale-110 transition-transform">
                     <Plus className="w-8 h-8" />
                   </div>
@@ -413,6 +434,17 @@ const BitacoraPsicosocial: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Modales de Acciones */}
+      <NuevaIntervencionModal
+        isOpen={showIntervencionModal}
+        onClose={() => setShowIntervencionModal(false)}
+      />
+      
+      <RegistrarDerivacionModal
+        isOpen={showDerivacionModal}
+        onClose={() => setShowDerivacionModal(false)}
+      />
 
     </main>
   );

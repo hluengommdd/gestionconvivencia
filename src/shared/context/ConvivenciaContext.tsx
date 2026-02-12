@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect, useRef } from 'react';
 import { Estudiante, Expediente, EtapaProceso, GravedadFalta, Hito } from '@/types';
 import { calcularPlazoLegal, addBusinessDays } from '@/shared/utils/plazos';
-import { supabase } from '@/shared/lib/supabaseClient';
+import { supabase, safeSupabase } from '@/shared/lib/supabaseClient';
 import { 
   DbEstudiante, 
   ExpedienteQueryRow,
@@ -90,34 +90,47 @@ const initialExpedientes: Expediente[] = [
   }
 ];
 
+/**
+ * Carga datos de localStorage de forma segura
+ */
+const loadLocalExpedientes = (): Expediente[] => {
+  if (typeof window === 'undefined') return initialExpedientes;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Validar que sea un array
+      if (Array.isArray(parsed)) {
+        return parsed as Expediente[];
+      }
+    }
+  } catch (error) {
+    console.warn('Error loading expedientes from localStorage:', error);
+  }
+  return initialExpedientes;
+};
+
 export const ConvivenciaProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [expedienteSeleccionado, setExpedienteSeleccionado] = useState<Expediente | null>(null);
   const [estudiantes, setEstudiantes] = useState<Estudiante[]>([]);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
-  const dataLoadedRef = useRef(false); // Track if Supabase data has been loaded
+  const [supabaseLoaded, setSupabaseLoaded] = useState(false);
+  const dataLoadedRef = useRef(false);
 
   const calcularPlazo = useCallback((fecha: Date, gravedad: GravedadFalta): Date => {
     return calcularPlazoLegal(fecha, gravedad);
   }, []);
 
-  const [expedientes, setExpedientes] = useState<Expediente[]>(() => {
-    if (typeof window === 'undefined') return initialExpedientes;
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) return JSON.parse(raw) as Expediente[];
-    } catch {
-      // ignore cache errors
-    }
-    return initialExpedientes;
-  });
+  const [expedientes, setExpedientes] = useState<Expediente[]>(loadLocalExpedientes);
 
   useEffect(() => {
-    if (!supabase) return;
+    const supabaseClient = supabase;
+    if (!supabaseClient) return;
+    if (dataLoadedRef.current) return; // Evitar carga duplicada
 
     const loadExpedientes = async () => {
-      if (!supabase) return;
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('expedientes')
         .select('id, folio, tipo_falta, estado_legal, etapa_proceso, fecha_inicio, plazo_fatal, creado_por, estudiantes(id, nombre_completo, curso)')
         .limit(200);
@@ -136,8 +149,6 @@ export const ConvivenciaProvider: React.FC<{ children: ReactNode }> = ({ childre
           : addBusinessDays(new Date(), esExpulsion ? 10 : 40).toISOString();
 
         const etapaDb = row.etapa_proceso ?? row.estado_legal;
-
-        // Manejar estudiantes como objeto o array
         const estudianteData = Array.isArray(row.estudiantes) ? row.estudiantes[0] : row.estudiantes;
 
         return {
@@ -156,15 +167,15 @@ export const ConvivenciaProvider: React.FC<{ children: ReactNode }> = ({ childre
         };
       });
 
-      if (mapped.length > 0 && !dataLoadedRef.current) {
+      if (mapped.length > 0) {
         dataLoadedRef.current = true;
+        setSupabaseLoaded(true);
         setExpedientes(mapped);
       }
     };
 
     const loadEstudiantes = async () => {
-      if (!supabase) return;
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('estudiantes')
         .select('id, nombre_completo, curso')
         .limit(200);
@@ -190,29 +201,36 @@ export const ConvivenciaProvider: React.FC<{ children: ReactNode }> = ({ childre
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(expedientes));
-    } catch {
-      // ignore cache errors
+    } catch (error) {
+      console.warn('Error saving expedientes to localStorage:', error);
     }
-  }, [expedientes]);
+  }, [expedientes, supabaseLoaded]);
 
   const actualizarEtapa = useCallback((id: string, nuevaEtapa: EtapaProceso) => {
-    setExpedientes(prev =>
-      prev.map(exp => exp.id === id ? { ...exp, etapa: nuevaEtapa } : exp)
-    );
-
-    const target = expedientes.find(e => e.id === id);
-    if (supabase && target?.dbId) {
-      supabase
-        .from('expedientes')
-        .update({ etapa_proceso: nuevaEtapa })
-        .eq('id', target.dbId)
-        .then(({ error }) => {
-          if (error) {
-            console.warn('Supabase: no se pudo actualizar etapa', error);
-          }
-        });
-    }
-  }, [expedientes]);
+    setExpedientes(prev => {
+      const updated = prev.map(exp => 
+        exp.id === id ? { ...exp, etapa: nuevaEtapa } : exp
+      );
+      
+      // Buscar en el estado actualizado
+      const target = updated.find(e => e.id === id);
+      if (supabase && target?.dbId) {
+        safeSupabase()
+          .from('expedientes')
+          .update({ etapa_proceso: nuevaEtapa })
+          .eq('id', target.dbId)
+          .then(({ error }) => {
+            if (error) {
+              console.warn('Supabase: no se pudo actualizar etapa', error);
+              // Revertir cambio en caso de error
+              setExpedientes(prev);
+            }
+          });
+      }
+      
+      return updated;
+    });
+  }, []);
 
   return (
     <ConvivenciaContext.Provider value={{

@@ -6,13 +6,9 @@
 
 /**
  * Estados del expediente según normativa Circular 782
+ * NOTA: Unificado con EtapaProceso para mantener consistencia
  */
-export type EstadoExpediente =
-  | 'identificado'
-  | 'en_tramite'
-  | 'derivado'
-  | 'cerrado'
-  | 'archivado';
+export type EstadoExpediente = EtapaProceso;
 
 /**
  * Tipos de medidas disciplinarias según Circular 782
@@ -546,8 +542,8 @@ export interface ExpedienteCompleto {
   derivacionGCC?: DerivacionGCC;
   /** Bitácora de acciones */
   bitacora: Bitacora[];
-  /** Estado actual */
-  estado: EstadoExpediente;
+  /** Etapa actual del proceso */
+  etapa: EtapaProceso;
   /** Fecha de creación */
   fechaCreacion: string;
   /** Usuario creador */

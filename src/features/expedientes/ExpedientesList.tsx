@@ -12,6 +12,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useConvivencia } from '@/shared/context/ConvivenciaContext';
+import { useToast } from '@/shared/components/Toast/ToastProvider';
 import {
   Search,
   Filter,
@@ -63,7 +64,8 @@ const SORT_FIELDS = {
  */
 const ExpedientesList: React.FC = () => {
   const navigate = useNavigate();
-  const { expedientes } = useConvivencia();
+  const { expedientes, setIsWizardOpen } = useConvivencia();
+  const toast = useToast();
 
   // Estados
   const [filtros, setFiltros] = useState<FiltrosExpediente>({
@@ -220,6 +222,8 @@ const ExpedientesList: React.FC = () => {
     link.href = URL.createObjectURL(blob);
     link.download = `expedientes_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
+    
+    toast?.showToast('success', 'Exportación completada', `Se exportaron ${filteredExpedientes.length} expedientes a CSV.`);
   };
 
   // Colores por gravedad
@@ -273,7 +277,7 @@ const ExpedientesList: React.FC = () => {
             <span>Exportar</span>
           </button>
           <button
-            onClick={() => navigate('/expedientes/nuevo')}
+            onClick={() => setIsWizardOpen(true)}
             className="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 transition-all flex items-center space-x-2"
           >
             <Plus className="w-4 h-4" />
@@ -284,7 +288,7 @@ const ExpedientesList: React.FC = () => {
 
       {/* Alertas de plazos */}
       {alertasPlazo.length > 0 && (
-        <div className="bg-orange-50 border-2 border-orange-200 rounded-[1.5rem] p-4 flex items-center space-x-4">
+        <div role="alert" className="bg-orange-50 border-2 border-orange-200 rounded-[1.5rem] p-4 flex items-center space-x-4">
           <div className="p-3 bg-orange-500 text-white rounded-2xl">
             <Clock className="w-5 h-5" />
           </div>
@@ -307,10 +311,13 @@ const ExpedientesList: React.FC = () => {
         <div className="flex flex-col md:flex-row gap-4">
           {/* Búsqueda */}
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <label htmlFor="expedientes-search" className="sr-only">Buscar expedientes</label>
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" aria-hidden="true" />
             <input
+              id="expedientes-search"
               type="text"
               placeholder="Buscar por folio, estudiante, estado..."
+              aria-label="Buscar expedientes por folio, estudiante o estado"
               value={filtros.busqueda}
               onChange={(e) => setFiltros(prev => ({ ...prev, busqueda: e.target.value }))}
               className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-300 focus:outline-none transition-all"

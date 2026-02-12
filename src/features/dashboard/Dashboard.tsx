@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useConvivencia } from '@/shared/context/ConvivenciaContext';
 import { useExpedientes } from '@/shared/hooks';
+import { useToast } from '@/shared/components/Toast/ToastProvider';
 import NormativeBadge from '@/shared/components/NormativeBadge';
 import PlazoCounter from '@/shared/components/PlazoCounter';
 import { EstudianteBadge } from '@/shared/components/EstudianteBadge';
@@ -66,6 +67,13 @@ const Dashboard: React.FC = () => {
   const { filteredExpedientes, searchTerm, setSearchTerm } = useExpedientes(expedientes);
   const navigate = useNavigate();
   const [courseFilter, setCourseFilter] = useState<string | null>(null);
+  const toast = useToast();
+
+  // Mostrar toast al abrir el wizard
+  const handleOpenWizard = () => {
+    toast?.showToast('info', 'Nuevo Expediente', 'Complete los datos para crear un nuevo expediente disciplinario.');
+    setIsWizardOpen(true);
+  };
 
   // Filtrar por curso si está activo
   const displayedExpedientes = courseFilter
@@ -81,11 +89,12 @@ const Dashboard: React.FC = () => {
           <p className="text-slate-500 font-medium text-xs md:text-sm">Control Operativo de Circulares 781 & 782</p>
         </div>
         <button
-          onClick={() => setIsWizardOpen(true)}
+          onClick={handleOpenWizard}
+          aria-label="Crear nuevo expediente"
           className="flex items-center space-x-3 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3.5 rounded-2xl font-black shadow-xl shadow-blue-500/20 transition-all active:scale-95 group"
         >
-          <FilePlus className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-          <span className="text-xs tracking-widest uppercase">Nuevo Proceso Legal</span>
+          <FilePlus className="w-5 h-5 group-hover:rotate-12 transition-transform" aria-hidden="true" />
+          <span className="text-xs tracking-widest uppercase">Nuevo Expediente</span>
         </button>
       </header>
 
@@ -116,10 +125,13 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="relative w-full md:w-96">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <label htmlFor="dashboard-search" className="sr-only">Buscar expedientes</label>
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" aria-hidden="true" />
             <input
+              id="dashboard-search"
               type="text"
               placeholder="Buscar por nombre, folio o gravedad..."
+              aria-label="Buscar expedientes por nombre, folio o gravedad"
               className="w-full pl-12 pr-6 py-4 bg-white border border-slate-200 rounded-2xl text-xs font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/5 transition-all shadow-inner"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}

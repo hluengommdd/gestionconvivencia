@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import type { Expediente } from '@/types';
 
 /**
@@ -7,6 +7,15 @@ import type { Expediente } from '@/types';
  */
 export const useExpedientes = (expedientes: Expediente[]) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [now, setNow] = useState(Date.now());
+
+  // Actualizar now cada minuto para evitar recalculos innecesarios
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 60000); // 1 minuto
+    return () => clearInterval(interval);
+  }, []);
 
   /**
    * Filtra expedientes según el término de búsqueda
@@ -26,9 +35,9 @@ export const useExpedientes = (expedientes: Expediente[]) => {
 
   /**
    * Calcula estadísticas KPI de los expedientes
+   * Memoizado para evitar recalculos en cada render
    */
   const kpis = useMemo(() => {
-    const ahora = Date.now();
     const cuarentaYOchoHorasMs = 48 * 60 * 60 * 1000;
 
     return {
@@ -39,7 +48,7 @@ export const useExpedientes = (expedientes: Expediente[]) => {
       vencimientosCriticos: filteredExpedientes.filter(e => {
         if (e.etapa === 'CERRADO_SANCION' || e.etapa === 'CERRADO_GCC') return false;
         const limite = new Date(e.plazoFatal).getTime();
-        const diff = limite - ahora;
+        const diff = limite - now;
         return diff > 0 && diff < cuarentaYOchoHorasMs;
       }).length,
       acuerdosGCC: filteredExpedientes.filter(e => 
@@ -47,7 +56,7 @@ export const useExpedientes = (expedientes: Expediente[]) => {
       ).length,
       total: filteredExpedientes.length,
     };
-  }, [filteredExpedientes]);
+  }, [filteredExpedientes, now]);
 
   /**
    * Resetea el término de búsqueda

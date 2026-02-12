@@ -3,7 +3,7 @@
  */
 import React, { useState, useMemo } from 'react';
 import { TrendingUp, Clock, FileText, AlertTriangle, CheckCircle, Calendar, Download } from 'lucide-react';
-import type { ExpedienteCompleto } from '@/types';
+import type { ExpedienteCompleto, EtapaProceso } from '@/types';
 import { formatearFecha } from '@/shared/utils/plazos';
 
 interface Props {
@@ -19,7 +19,7 @@ export const ReportsExpedientes: React.FC<Props> = ({ expedientes, onExport }) =
     const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
     
     let total = 0;
-    const porEstado: Record<string, number> = {};
+    const porEstado: Partial<Record<EtapaProceso, number>> = {};
     const porGravedad: Record<string, number> = {};
     let vencimientoProximo = 0;
     let vencidos = 0;
@@ -28,7 +28,7 @@ export const ReportsExpedientes: React.FC<Props> = ({ expedientes, onExport }) =
 
     expedientes.forEach(exp => {
       total++;
-      porEstado[exp.estado] = (porEstado[exp.estado] || 0) + 1;
+      porEstado[exp.etapa] = (porEstado[exp.etapa] || 0) + 1;
       exp.hechos.forEach(h => { porGravedad[h.gravedad] = (porGravedad[h.gravedad] || 0) + 1; });
       const dias = (new Date(exp.plazoFatal).getTime() - ahora.getTime()) / (1000 * 60 * 60 * 24);
       if (dias < 0) vencidos++;
@@ -36,7 +36,7 @@ export const ReportsExpedientes: React.FC<Props> = ({ expedientes, onExport }) =
       const fechaExp = new Date(exp.fechaCreacion);
       if (fechaExp >= inicioMes) {
         nuevosMes++;
-        if (exp.estado === 'cerrado' || exp.estado === 'archivado') resueltosMes++;
+        if (exp.etapa.startsWith('CERRADO')) resueltosMes++;
       }
     });
 
@@ -45,8 +45,8 @@ export const ReportsExpedientes: React.FC<Props> = ({ expedientes, onExport }) =
 
   const handleExport = (formato: 'pdf' | 'excel' | 'csv') => {
     if (formato === 'csv') {
-      const headers = ['Folio', 'Estado', 'Alumno', 'Fecha'];
-      const rows = expedientes.map(e => [e.folio, e.estado, e.alumno.nombreCompleto, e.fechaCreacion]);
+      const headers = ['Folio', 'Etapa', 'Alumno', 'Fecha'];
+      const rows = expedientes.map(e => [e.folio, e.etapa, e.alumno.nombreCompleto, e.fechaCreacion]);
       const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
       const blob = new Blob([csv], { type: 'text/csv' });
       const a = document.createElement('a');
@@ -80,18 +80,18 @@ export const ReportsExpedientes: React.FC<Props> = ({ expedientes, onExport }) =
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MetricCard title="Vencidos" value={stats.vencidos} icon={AlertTriangle} color="bg-red-500" alert={stats.vencidos > 0} />
-        <MetricCard title="En Trámite" value={stats.porEstado.en_tramite || 0} icon={Clock} color="bg-yellow-500" />
-        <MetricCard title="Derivados" value={stats.porEstado.derivado || 0} icon={TrendingUp} color="bg-indigo-500" />
-        <MetricCard title="Archivados" value={stats.porEstado.archivado || 0} icon={Calendar} color="bg-slate-500" />
+        <MetricCard title="En Trámite" value={stats.porEstado.NOTIFICADO || 0} icon={Clock} color="bg-yellow-500" />
+        <MetricCard title="En Descargos" value={stats.porEstado.DESCARGOS || 0} icon={Clock} color="bg-blue-500" />
+        <MetricCard title="Cerrados" value={(stats.porEstado.CERRADO_SANCION || 0) + (stats.porEstado.CERRADO_GCC || 0)} icon={Calendar} color="bg-slate-500" />
       </div>
 
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200"><h3 className="font-bold text-slate-800">Distribución por Gravedad</h3></div>
         <div className="p-6 grid grid-cols-4 gap-4">
-          {['leve', 'relevante', 'grave', 'gravisima_expulsion'].map(g => (
+          {['LEVE', 'RELEVANTE', 'GRAVE', 'GRAVISIMA_EXPULSION'].map(g => (
             <div key={g} className="text-center">
               <div className="text-3xl font-black text-slate-800">{stats.porGravedad[g] || 0}</div>
-              <div className="text-xs text-slate-500 uppercase mt-1">{g.replace('gravisima_expulsion', 'Gravísima').replace(/_/g, ' ')}</div>
+              <div className="text-xs text-slate-500 uppercase mt-1">{g.replace('GRAVISIMA_EXPULSION', 'Gravísima').replace(/_/g, ' ')}</div>
             </div>
           ))}
         </div>

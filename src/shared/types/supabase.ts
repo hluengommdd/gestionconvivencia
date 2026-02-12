@@ -29,7 +29,7 @@ export interface DbExpediente {
   id: string;
   folio: string;
   estudiante_id: string;
-  tipo_falta: 'leve' | 'relevante' | 'expulsion';
+  tipo_falta: 'leve' | 'relevante' | 'grave' | 'expulsion';
   estado_legal: string;
   etapa_proceso: string;
   fecha_inicio: string;
@@ -117,6 +117,8 @@ export const mapDbTipoFaltaToGravedad = (
       return 'LEVE';
     case 'relevante':
       return 'RELEVANTE';
+    case 'grave':
+      return 'GRAVE';
     case 'expulsion':
       return 'GRAVISIMA_EXPULSION';
     default:

@@ -1,10 +1,11 @@
 
-import React, { useState, useMemo } from 'react';
-import { AlertCircle, MapPin, Send, ShieldAlert, CheckCircle, Calendar, ChevronDown } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { AlertCircle, MapPin, Send, ShieldAlert, CheckCircle, Calendar, ChevronDown, ChevronUp, Users, Search, X } from 'lucide-react';
 import { useLocalDraft } from '@/shared/utils/useLocalDraft';
 import { useConvivencia } from '@/shared/context/ConvivenciaContext';
 import { supabase } from '@/shared/lib/supabaseClient';
-import { EstudianteAutocomplete } from './EstudianteAutocomplete';
+import ReportePatioModal from '@/features/dashboard/ReportePatioModal';
 
 type GravedadType = 'LEVE' | 'RELEVANTE' | 'GRAVE';
 
@@ -20,9 +21,20 @@ interface FormDataPatio {
 }
 
 const ReportePatio: React.FC = () => {
+  const location = useLocation();
   const { estudiantes } = useConvivencia();
   const [enviado, setEnviado] = useState(false);
+  const [showPatioModal, setShowPatioModal] = useState(false);
   const [selectedCurso, setSelectedCurso] = useState<string>('');
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [searchEstudiante, setSearchEstudiante] = useState('');
+  
+  // Detectar si debemos abrir el modal
+  useEffect(() => {
+    if (location.pathname === '/patio') {
+      setShowPatioModal(true);
+    }
+  }, [location.pathname]);
   
   const [formData, setFormData, clearFormData] = useLocalDraft<FormDataPatio>('reporte:patio', {
     informante: '',
@@ -46,17 +58,52 @@ const ReportePatio: React.FC = () => {
     return Array.from(cursosSet).sort();
   }, [estudiantes]);
 
-  const handleEstudianteChange = (estudianteId: string | null, nombre: string, curso: string) => {
+  // Filtrar estudiantes por curso Y término de búsqueda
+  const estudiantesDelCurso = useMemo(() => {
+    if (!selectedCurso) return [];
+    
+    let filtered = estudiantes.filter(est => est.curso === selectedCurso);
+    
+    if (searchEstudiante.trim()) {
+      const term = searchEstudiante.toLowerCase().trim();
+      filtered = filtered.filter(est => 
+        est.nombreCompleto.toLowerCase().includes(term)
+      );
+    }
+    
+    return filtered;
+  }, [estudiantes, selectedCurso, searchEstudiante]);
+
+  // Total de estudiantes en el curso
+  const totalEstudiantesCurso = useMemo(() => {
+    return estudiantes.filter(est => est.curso === selectedCurso).length;
+  }, [estudiantes, selectedCurso]);
+
+  const handleEstudianteSelect = (estudiante: { id: string; nombreCompleto: string; curso?: string | null }) => {
     setFormData(prev => ({
       ...prev,
-      estudianteId,
-      estudianteNombre: nombre,
-      estudianteCurso: curso
+      estudianteId: estudiante.id,
+      estudianteNombre: estudiante.nombreCompleto,
+      estudianteCurso: estudiante.curso || selectedCurso
     }));
-    // Si ya hay un curso seleccionado, mantenerlo
-    if (!selectedCurso && curso) {
-      setSelectedCurso(curso);
-    }
+    setIsExpanded(false);
+    setSearchEstudiante('');
+  };
+
+  const handleClearEstudiante = () => {
+    setFormData(prev => ({
+      ...prev,
+      estudianteId: null,
+      estudianteNombre: '',
+      estudianteCurso: ''
+    }));
+    setIsExpanded(false);
+    setSearchEstudiante('');
+  };
+
+  const handleCursoChange = (curso: string) => {
+    setSelectedCurso(curso);
+    handleClearEstudiante();
   };
 
   const handleEnviar = async (e: React.FormEvent) => {
@@ -98,6 +145,7 @@ const ReportePatio: React.FC = () => {
     setTimeout(() => setEnviado(false), 3000);
     clearFormData();
     setSelectedCurso('');
+    handleClearEstudiante();
   };
 
   return (
@@ -140,11 +188,7 @@ const ReportePatio: React.FC = () => {
                 <div className="relative">
                   <select
                     value={selectedCurso}
-                    onChange={(e) => {
-                      setSelectedCurso(e.target.value);
-                      // Limpiar selección de estudiante al cambiar curso
-                      handleEstudianteChange(null, '', '');
-                    }}
+                    onChange={(e) => handleCursoChange(e.target.value)}
                     className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:outline-none appearance-none cursor-pointer"
                   >
                     <option value="">Seleccione curso...</option>
@@ -159,19 +203,144 @@ const ReportePatio: React.FC = () => {
               </div>
             </div>
 
-            {/* Segunda fila: Estudiante (dependiente del curso) */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            {/* Segunda fila: Selector de Estudiante (mismo patrón que WizardStep1Clasificacion) */}
+            <div className={`space-y-3 transition-all ${!selectedCurso ? 'opacity-50 pointer-events-none' : ''}`}>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
                 Estudiante(s) Involucrado(s)
               </label>
-              <EstudianteAutocomplete
-                value={formData.estudianteNombre}
-                onChange={handleEstudianteChange}
-                placeholder={selectedCurso ? "Buscar en " + selectedCurso + "..." : "Primero seleccione un curso..."}
-                showBadge={true}
-                cursoFiltro={selectedCurso || null}
-                disabled={!selectedCurso}
-              />
+              
+              {selectedCurso ? (
+                <>
+                  {/* Barra de resumen con botón expandir */}
+                  <button
+                    type="button"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="w-full p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between hover:bg-amber-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Users className="w-5 h-5 text-amber-600" />
+                      <div className="text-left">
+                        <p className="text-sm font-bold text-amber-800">
+                          {totalEstudiantesCurso} estudiante{totalEstudiantesCurso !== 1 ? 's' : ''} en {selectedCurso}
+                        </p>
+                        <p className="text-xs text-amber-600">
+                          {isExpanded ? 'Ocultar lista' : 'Ver estudiantes para seleccionar'}
+                        </p>
+                      </div>
+                    </div>
+                    {isExpanded ? (
+                      <ChevronUp className="w-5 h-5 text-amber-400" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-amber-400" />
+                    )}
+                  </button>
+
+                  {/* Lista expandida con buscador */}
+                  {isExpanded && (
+                    <div className="border border-slate-200 rounded-2xl overflow-hidden animate-in slide-in-from-top-2">
+                      {/* Buscador */}
+                      <div className="p-3 bg-slate-50 border-b border-slate-200">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <input
+                            type="text"
+                            placeholder="Buscar por nombre..."
+                            value={searchEstudiante}
+                            onChange={(e) => setSearchEstudiante(e.target.value)}
+                            className="w-full pl-10 pr-10 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/5 text-sm"
+                          />
+                          {searchEstudiante && (
+                            <button
+                              type="button"
+                              onClick={() => setSearchEstudiante('')}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-slate-100 rounded"
+                            >
+                              <X className="w-4 h-4 text-slate-400" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Lista con scroll */}
+                      <div className="max-h-60 overflow-y-auto">
+                        {estudiantesDelCurso.length > 0 ? (
+                          estudiantesDelCurso.map((est) => (
+                            <button
+                              type="button"
+                              key={est.id}
+                              onClick={() => handleEstudianteSelect(est)}
+                              className={`w-full flex items-center p-3 hover:bg-amber-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors ${
+                                formData.estudianteId === est.id ? 'bg-amber-100' : ''
+                              }`}
+                            >
+                              <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-xs font-bold text-amber-600">
+                                  {est.nombreCompleto.charAt(0)}
+                                </span>
+                              </div>
+                              <div className="ml-3 flex items-center gap-3 flex-1 min-w-0">
+                                <p className="text-sm font-bold text-slate-800 truncate">{est.nombreCompleto}</p>
+                                {formData.estudianteId === est.id && (
+                                  <CheckCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                                )}
+                              </div>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="p-4 text-center text-slate-400 text-sm">
+                            {searchEstudiante 
+                              ? `No se encontró "${searchEstudiante}"` 
+                              : 'Sin estudiantes'}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Footer con cambio de curso */}
+                      <div className="p-3 bg-slate-50 border-t border-slate-200">
+                        <button
+                          type="button"
+                          onClick={handleClearEstudiante}
+                          className="text-xs text-amber-600 hover:text-amber-700 font-bold flex items-center gap-1"
+                        >
+                          <X className="w-3 h-3" />
+                          Cambiar curso
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Estudiante seleccionado */}
+                  {formData.estudianteId && !isExpanded && (
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-amber-200 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-bold text-amber-700">
+                            {formData.estudianteNombre.charAt(0)}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-800">{formData.estudianteNombre}</p>
+                          <p className="text-xs text-slate-500">{formData.estudianteCurso}</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleClearEstudiante}
+                        className="p-2 hover:bg-amber-200 rounded-lg transition-colors"
+                      >
+                        <X className="w-4 h-4 text-slate-400" />
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="p-8 text-center border border-slate-200 rounded-2xl bg-slate-50">
+                  <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                  <p className="text-sm font-bold text-slate-500">
+                    Seleccione un curso para ver los estudiantes
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Tercera fila: Lugar y Fecha */}
@@ -252,6 +421,12 @@ const ReportePatio: React.FC = () => {
           </form>
         )}
       </div>
+
+      {/* Modal de Nuevo Reporte */}
+      <ReportePatioModal
+        isOpen={showPatioModal}
+        onClose={() => setShowPatioModal(false)}
+      />
     </main>
   );
 };

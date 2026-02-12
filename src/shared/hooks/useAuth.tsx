@@ -97,7 +97,23 @@ const MATRIZ_PERMISOS: Record<RolUsuario, Permiso[]> = {
   ]
 };
 
-// ============ CONTEXT - Compatible con uso existente ============
+// ============ HELPERS ============
+
+/**
+ * Crea un usuario demo para desarrollo/testing
+ * @param userId - ID del usuario de Supabase auth
+ */
+const crearUsuarioDemo = (userId: string, email?: string): Usuario => ({
+  id: userId,
+  email: email || '',
+  nombre: 'Usuario',
+  apellido: 'Demo',
+  rol: 'CONVIVENCIA_ESCOLAR',
+  permisos: MATRIZ_PERMISOS['CONVIVENCIA_ESCOLAR'],
+  establecimientoId: 'demo-establecimiento'
+});
+
+// ============ CONTEXT ============
 
 interface AuthContextType {
   session: { user: { id: string; email?: string } } | null;
@@ -122,45 +138,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!supabase) {
+    const supabaseClient = supabase;
+    if (!supabaseClient) {
+      // Modo demo sin Supabase configurado
       setIsLoading(false);
       return;
     }
 
     const verificarSesion = async () => {
-      const { data } = await (supabase as NonNullable<typeof supabase>).auth.getSession();
-      setSession(data.session);
-      
-      if (data.session?.user) {
-        const usuarioDemo: Usuario = {
-          id: data.session.user.id,
-          email: data.session.user.email || '',
-          nombre: 'Usuario',
-          apellido: 'Demo',
-          rol: 'CONVIVENCIA_ESCOLAR',
-          permisos: MATRIZ_PERMISOS['CONVIVENCIA_ESCOLAR'],
-          establecimientoId: 'demo-establecimiento'
-        };
-        setUsuario(usuarioDemo);
+      try {
+        const { data } = await supabaseClient.auth.getSession();
+        setSession(data.session);
+        
+        if (data.session?.user) {
+          setUsuario(crearUsuarioDemo(data.session.user.id, data.session.user.email || undefined));
+        }
+      } catch (error) {
+        console.error('Error verificando sesión:', error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     verificarSesion();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session?.user) {
-        const usuarioDemo: Usuario = {
-          id: session.user.id,
-          email: session.user.email || '',
-          nombre: 'Usuario',
-          apellido: 'Demo',
-          rol: 'CONVIVENCIA_ESCOLAR',
-          permisos: MATRIZ_PERMISOS['CONVIVENCIA_ESCOLAR'],
-          establecimientoId: 'demo-establecimiento'
-        };
-        setUsuario(usuarioDemo);
+        setUsuario(crearUsuarioDemo(session.user.id, session.user.email || undefined));
       } else {
         setUsuario(null);
       }
@@ -187,16 +192,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(data.session);
 
       if (data.user) {
-        const usuarioDemo: Usuario = {
-          id: data.user.id,
-          email: data.user.email || email,
-          nombre: 'Usuario',
-          apellido: 'Demo',
-          rol: 'CONVIVENCIA_ESCOLAR',
-          permisos: MATRIZ_PERMISOS['CONVIVENCIA_ESCOLAR'],
-          establecimientoId: 'demo-establecimiento'
-        };
-        setUsuario(usuarioDemo);
+        setUsuario(crearUsuarioDemo(data.user.id, email));
       }
 
       return { error: null };

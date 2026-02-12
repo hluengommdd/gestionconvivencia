@@ -3,20 +3,30 @@
  */
 import React, { useState } from 'react';
 import { User, Clock, Send, ChevronRight, Bell, Building } from 'lucide-react';
-import type { ExpedienteCompleto, EstadoExpediente, NivelUrgencia } from '@/types';
+import type { ExpedienteCompleto, EtapaProceso, NivelUrgencia } from '@/types';
 import { formatearFecha } from '@/shared/utils/plazos';
 import { useAuth } from '@/shared/hooks';
 
-const TRANSICIONES: Record<EstadoExpediente, EstadoExpediente[]> = {
-  identificado: ['en_tramite', 'derivado', 'archivado'],
-  en_tramite: ['identificado', 'derivado', 'cerrado', 'archivado'],
-  derivado: ['en_tramite', 'cerrado', 'archivado'],
-  cerrado: ['archivado', 'en_tramite'],
-  archivado: []
+const TRANSICIONES: Record<EtapaProceso, EtapaProceso[]> = {
+  INICIO: ['NOTIFICADO', 'DESCARGOS', 'CERRADO_GCC'],
+  NOTIFICADO: ['INICIO', 'DESCARGOS', 'CERRADO_GCC'],
+  DESCARGOS: ['INVESTIGACION', 'CERRADO_GCC'],
+  INVESTIGACION: ['RESOLUCION_PENDIENTE', 'CERRADO_GCC'],
+  RESOLUCION_PENDIENTE: ['RECONSIDERACION', 'CERRADO_SANCION', 'CERRADO_GCC'],
+  RECONSIDERACION: ['CERRADO_SANCION', 'CERRADO_GCC'],
+  CERRADO_SANCION: ['CERRADO_GCC'],
+  CERRADO_GCC: []
 };
 
-const ESTADO_LABELS: Record<EstadoExpediente, string> = {
-  identificado: 'Identificado', en_tramite: 'En Trámite', derivado: 'Derivado', cerrado: 'Cerrado', archivado: 'Archivado'
+const ESTADO_LABELS: Record<EtapaProceso, string> = {
+  INICIO: 'Inicio',
+  NOTIFICADO: 'Notificado',
+  DESCARGOS: 'Descargos',
+  INVESTIGACION: 'Investigación',
+  RESOLUCION_PENDIENTE: 'Resolución Pendiente',
+  RECONSIDERACION: 'Reconsideración',
+  CERRADO_SANCION: 'Cerrado Sanción',
+  CERRADO_GCC: 'Cerrado GCC'
 };
 
 const URGENCIA_LABELS: Record<NivelUrgencia, { label: string }> = {
@@ -27,7 +37,7 @@ interface Derivacion { id: string; aDepartamento: string; urgencia: NivelUrgenci
 
 interface Props {
   expediente: ExpedienteCompleto;
-  onTransition?: (e: EstadoExpediente, j: string) => void;
+  onTransition?: (e: EtapaProceso, j: string) => void;
 }
 
 export const WorkflowSystem: React.FC<Props> = ({ expediente, onTransition }) => {
@@ -36,10 +46,10 @@ export const WorkflowSystem: React.FC<Props> = ({ expediente, onTransition }) =>
   const [derivaciones, setDerivaciones] = useState<Derivacion[]>([]);
 
   const puede = tienePermiso('expedientes:editar');
-  const disponibles = TRANSICIONES[expediente.estado];
+  const disponibles = TRANSICIONES[expediente.etapa];
   const dias = Math.ceil((new Date(expediente.plazoFatal).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 
-  const handleTransition = (nuevo: EstadoExpediente, justificacion: string) => {
+  const handleTransition = (nuevo: EtapaProceso, justificacion: string) => {
     onTransition?.(nuevo, justificacion);
     setShowModal(false);
   };
@@ -57,7 +67,7 @@ export const WorkflowSystem: React.FC<Props> = ({ expediente, onTransition }) =>
       <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-4 border border-indigo-100">
         <div className="flex items-center justify-between">
           <div><p className="text-xs text-indigo-600 uppercase font-bold tracking-wider">Estado</p>
-            <h3 className="text-xl font-black text-slate-800">{ESTADO_LABELS[expediente.estado]}</h3>
+            <h3 className="text-xl font-black text-slate-800">{ESTADO_LABELS[expediente.etapa]}</h3>
           </div>
           <div className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
             dias < 0 ? 'bg-red-100 text-red-700' : dias < 3 ? 'bg-orange-100 text-orange-700' :
@@ -140,12 +150,12 @@ export const WorkflowSystem: React.FC<Props> = ({ expediente, onTransition }) =>
 };
 
 const TransitionModal: React.FC<{
-  estados: EstadoExpediente[];
+  estados: EtapaProceso[];
   onClose: () => void;
-  onConfirm: (e: EstadoExpediente, j: string) => void;
+  onConfirm: (e: EtapaProceso, j: string) => void;
   onDerivar: (d: string, u: NivelUrgencia, j: string) => void;
 }> = ({ estados, onClose, onConfirm, onDerivar }) => {
-  const [estado, setEstado] = useState<EstadoExpediente | ''>('');
+  const [estado, setEstado] = useState<EtapaProceso | ''>('');
   const [justificacion, setJustificacion] = useState('');
   const [departamento, setDepartamento] = useState('');
   const [urgencia, setUrgencia] = useState<NivelUrgencia>('media');
@@ -169,7 +179,7 @@ const TransitionModal: React.FC<{
           {tab === 'estado' ? (
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Estado</label>
-              <select value={estado} onChange={(e) => setEstado(e.target.value as EstadoExpediente)}
+              <select value={estado} onChange={(e) => setEstado(e.target.value as EtapaProceso)}
                 className="w-full px-4 py-2 border border-slate-200 rounded-lg">
                 <option value="">Seleccionar...</option>
                 {estados.map(e => <option key={e} value={e}>{ESTADO_LABELS[e]}</option>)}
