@@ -41,40 +41,22 @@ interface NavItem {
 }
 
 /** Elementos de navegación con submenús expandibles */
-const expandableItems: ExpandableItem[] = [
-  {
-    name: 'Reportes Patio',
-    icon: ClipboardList,
-    category: 'REGISTRO',
-    defaultOpen: false,
-    submenu: [
-      { name: 'Ver Reportes', path: '/patio/lista' },
-      { name: 'Nuevo Reporte', path: '/patio', action: 'modal' }
-    ]
-  },
-  {
-    name: 'Bitácora Psicosocial',
-    icon: Heart,
-    category: 'REGISTRO',
-    defaultOpen: false,
-    submenu: [
-      { name: 'Ver Bitácora', path: '/bitacora' },
-      { name: 'Nueva Intervención', path: '/bitacora/intervencion', action: 'modal' },
-      { name: 'Registrar Derivación', path: '/bitacora/derivacion', action: 'modal' }
-    ]
-  }
-];
+const expandableItems: ExpandableItem[] = [];
 
 /** Elementos de navegación estándar */
 const menuItems: NavItem[] = [
   // Principal
   { name: 'Dashboard', icon: LayoutDashboard, path: '/', category: 'PRINCIPAL' },
-  
+
+  // Registro e Incidentes
+  { name: 'Reportes Patio', icon: ClipboardList, path: '/patio/lista', category: 'REGISTRO' },
+  { name: 'Bitácora Psicosocial', icon: Heart, path: '/bitacora', category: 'REGISTRO' },
+
   // Gestión Formal
   { name: 'Expedientes', icon: FileStack, path: '/expedientes', category: 'GESTION' },
   { name: 'Evidencias', icon: ImageIcon, path: '/evidencias', category: 'GESTION' },
   { name: 'Mediación GCC', icon: Users, path: '/mediacion', category: 'GESTION' },
-  
+
   // Administración y Herramientas
   { name: 'Calendario', icon: Calendar, path: '/calendario', category: 'ADMIN' },
   { name: 'Acompañamiento', icon: HeartHandshake, path: '/apoyo', category: 'ADMIN' },
@@ -140,7 +122,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ isCollapsed }) => {
         {categoryOrder.map((category) => {
           const expandableInCategory = groupedExpandable[category] || [];
           const itemsInCategory = groupedItems[category] || [];
-          
+
           return (
             <React.Fragment key={category}>
               {/* Header de categoría - solo visible si no está colapsado */}
@@ -151,7 +133,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ isCollapsed }) => {
                   </span>
                 </li>
               )}
-              
+
               {/* Items expandibles */}
               {expandableInCategory.map((item) => {
                 const Icon = item.icon;
@@ -159,7 +141,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ isCollapsed }) => {
                 const pathname = location.pathname;
                 const isItemActive = item.submenu.some(sub => pathname === sub.path);
                 const submenuId = `submenu-${item.name.replace(/\s+/g, '-')}`;
-                
+
                 return (
                   <li key={item.name}>
                     {/* Botón principal expandible */}
@@ -167,11 +149,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ isCollapsed }) => {
                       onClick={() => toggleExpand(item.name)}
                       aria-expanded={isExpanded}
                       aria-controls={submenuId}
-                      className={`w-full group flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
-                        isItemActive || isExpanded
-                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                          : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                      }`}
+                      className={`w-full group flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${isItemActive || isExpanded
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                        }`}
                       title={isCollapsed ? item.name : undefined}
                     >
                       <Icon className={`w-5 h-5 flex-shrink-0 transition-transform ${isItemActive || isExpanded ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
@@ -184,24 +165,23 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ isCollapsed }) => {
                         </>
                       )}
                     </button>
-                    
+
                     {/* Submenú */}
                     {!isCollapsed && isExpanded && (
                       <ul id={submenuId} className="ml-4 mt-1 space-y-1 border-l-2 border-slate-700 pl-3" role="list">
                         {item.submenu.map((sub) => {
                           const pathname = location.pathname;
                           const isSubActive = pathname === sub.path;
-                          
+
                           return (
                             <li key={sub.path}>
                               <NavLink
                                 to={sub.path}
                                 aria-label={sub.name}
-                                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-xs ${
-                                  isSubActive
-                                    ? 'bg-blue-500/20 text-blue-400 font-medium'
-                                    : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-                                }`}
+                                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-xs ${isSubActive
+                                  ? 'bg-blue-500/20 text-blue-400 font-medium'
+                                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                                  }`}
                               >
                                 {sub.action === 'modal' && <Hand className="w-4 h-4" aria-hidden="true" />}
                                 <span>{sub.name}</span>
@@ -214,7 +194,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ isCollapsed }) => {
                   </li>
                 );
               })}
-              
+
               {/* Items estándar de la categoría */}
               {itemsInCategory.map((item) => {
                 const Icon = item.icon;
@@ -222,17 +202,16 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ isCollapsed }) => {
                 const isSubPath = pathname.startsWith(item.path + '/');
                 const isExactMatch = pathname === item.path;
                 const isActive = isExactMatch || isSubPath;
-                
+
                 return (
                   <li key={item.path}>
                     <NavLink
                       to={item.path}
                       aria-label={item.name}
-                      className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
-                        isActive
-                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                          : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                      }`}
+                      className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${isActive
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                        }`}
                       title={isCollapsed ? item.name : undefined}
                     >
                       <Icon className={`w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />

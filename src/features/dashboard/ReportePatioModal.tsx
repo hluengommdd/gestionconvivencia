@@ -21,15 +21,16 @@ interface FormDataPatio {
 interface ReportePatioModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-const ReportePatioModal: React.FC<ReportePatioModalProps> = ({ isOpen, onClose }) => {
+const ReportePatioModal: React.FC<ReportePatioModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const { estudiantes } = useConvivencia();
   const [enviado, setEnviado] = useState(false);
   const [selectedCurso, setSelectedCurso] = useState<string>('');
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchEstudiante, setSearchEstudiante] = useState('');
-  
+
   const [formData, setFormData, clearFormData] = useLocalDraft<FormDataPatio>('reporte:patio', {
     informante: '',
     estudianteId: null,
@@ -98,7 +99,7 @@ const ReportePatioModal: React.FC<ReportePatioModalProps> = ({ isOpen, onClose }
           .select('establecimiento_id')
           .eq('id', userId)
           .maybeSingle();
-        
+
         await supabase.from('reportes_patio').insert({
           establecimiento_id: profile?.establecimiento_id ?? null,
           estudiante_id: formData.estudianteId,
@@ -118,6 +119,7 @@ const ReportePatioModal: React.FC<ReportePatioModalProps> = ({ isOpen, onClose }
       setEnviado(false);
       clearFormData();
       setSelectedCurso('');
+      onSuccess?.(); // Notificar al padre que se creó el reporte
       onClose();
     }, 2000);
   };
@@ -209,17 +211,17 @@ const ReportePatioModal: React.FC<ReportePatioModalProps> = ({ isOpen, onClose }
 
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Informante</label>
-              <input required type="text" placeholder="Nombre del funcionario que reporta" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" value={formData.informante} onChange={(e: any) => setFormData({...formData, informante: e.target.value})} />
+              <input required type="text" placeholder="Nombre del funcionario que reporta" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" value={formData.informante} onChange={(e: any) => setFormData({ ...formData, informante: e.target.value })} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center"><MapPin className="w-3 h-3 mr-2" /> Lugar</label>
-                <input required type="text" placeholder="Dónde ocurrió" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" value={formData.lugar} onChange={(e: any) => setFormData({...formData, lugar: e.target.value})} />
+                <input required type="text" placeholder="Dónde ocurrió" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" value={formData.lugar} onChange={(e: any) => setFormData({ ...formData, lugar: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center"><Calendar className="w-3 h-3 mr-2" /> Fecha</label>
-                <input required type="date" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" value={formData.fechaIncidente} onChange={(e: any) => setFormData({...formData, fechaIncidente: e.target.value})} />
+                <input required type="date" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" value={formData.fechaIncidente} onChange={(e: any) => setFormData({ ...formData, fechaIncidente: e.target.value })} />
               </div>
             </div>
 
@@ -227,14 +229,14 @@ const ReportePatioModal: React.FC<ReportePatioModalProps> = ({ isOpen, onClose }
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gravedad Percibida</label>
               <div className="flex gap-4">
                 {(['LEVE', 'RELEVANTE', 'GRAVE'] as const).map(g => (
-                  <button key={g} type="button" onClick={() => setFormData((prev: any) => ({...prev, gravedadPercibida: g}))} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${formData.gravedadPercibida === g ? g === 'LEVE' ? 'bg-amber-400 text-white border-amber-400' : g === 'RELEVANTE' ? 'bg-orange-500 text-white border-orange-500' : 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-400 border-slate-100'}`}>{g}</button>
+                  <button key={g} type="button" onClick={() => setFormData((prev: any) => ({ ...prev, gravedadPercibida: g }))} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${formData.gravedadPercibida === g ? g === 'LEVE' ? 'bg-amber-400 text-white border-amber-400' : g === 'RELEVANTE' ? 'bg-orange-500 text-white border-orange-500' : 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-400 border-slate-100'}`}>{g}</button>
                 ))}
               </div>
             </div>
 
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Descripción del Incidente</label>
-              <textarea required className="w-full h-24 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium resize-none" placeholder="Relato objetivo de lo observado..." value={formData.descripcion} onChange={(e: any) => setFormData({...formData, descripcion: e.target.value})} />
+              <textarea required className="w-full h-24 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium resize-none" placeholder="Relato objetivo de lo observado..." value={formData.descripcion} onChange={(e: any) => setFormData({ ...formData, descripcion: e.target.value })} />
             </div>
 
             <div className="flex gap-4 pt-4">

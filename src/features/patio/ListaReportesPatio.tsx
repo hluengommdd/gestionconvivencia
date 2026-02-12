@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/shared/lib/supabaseClient';
-import { 
-  AlertOctagon, 
-  CheckCircle, 
+import {
+  AlertOctagon,
+  CheckCircle,
   Clock,
   ArrowRight,
-  Eye
+  Eye,
+  Plus
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { EstudianteBadge } from '@/shared/components/EstudianteBadge';
+import ReportePatioModal from '@/features/dashboard/ReportePatioModal';
 
 interface ReportePatio {
   id: string;
@@ -30,6 +32,7 @@ const ListaReportesPatio: React.FC = () => {
   const [reportes, setReportes] = useState<ReportePatio[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'ALL' | 'PENDIENTE' | 'DERIVADO'>('ALL');
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const loadReportes = async () => {
@@ -52,6 +55,25 @@ const ListaReportesPatio: React.FC = () => {
 
     loadReportes();
   }, []);
+
+  const handleReporteCreado = () => {
+    // Recargar reportes después de crear uno nuevo
+    const loadReportes = async () => {
+      if (!supabase) return;
+
+      const { data, error } = await supabase
+        .from('reportes_patio')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (!error && data) {
+        setReportes(data as ReportePatio[]);
+      }
+    };
+    loadReportes();
+    setShowModal(false);
+  };
 
   const filteredReportes = reportes.filter(r => {
     if (filter === 'ALL') return true;
@@ -94,7 +116,7 @@ const ListaReportesPatio: React.FC = () => {
       return;
     }
 
-    setReportes(prev => prev.map(r => 
+    setReportes(prev => prev.map(r =>
       r.id === reporteId ? { ...r, estado: nuevoEstado } : r
     ));
   };
@@ -112,13 +134,22 @@ const ListaReportesPatio: React.FC = () => {
 
   return (
     <main className="flex-1 p-4 md:p-8 bg-slate-50 overflow-y-auto">
-      <header className="mb-8">
-        <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">
-          Registros de Patio
-        </h2>
-        <p className="text-slate-500 text-sm font-bold uppercase tracking-widest">
-          Control de incidentes y acciones tomadas
-        </p>
+      <header className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">
+            Registros de Patio
+          </h2>
+          <p className="text-slate-500 text-sm font-bold uppercase tracking-widest">
+            Control de incidentes y acciones tomadas
+          </p>
+        </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-2 px-6 py-3 bg-amber-600 text-white rounded-xl font-bold text-sm hover:bg-amber-500 transition-all shadow-lg hover:shadow-xl active:scale-95"
+        >
+          <Plus className="w-5 h-5" />
+          <span className="hidden sm:inline">Nuevo Reporte</span>
+        </button>
       </header>
 
       {/* Filtros */}
@@ -131,11 +162,10 @@ const ListaReportesPatio: React.FC = () => {
           <button
             key={f.key}
             onClick={() => setFilter(f.key as typeof filter)}
-            className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-colors ${
-              filter === f.key 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-white text-slate-600 hover:bg-slate-100'
-            }`}
+            className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-colors ${filter === f.key
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-slate-600 hover:bg-slate-100'
+              }`}
           >
             {f.label}
           </button>
@@ -171,7 +201,7 @@ const ListaReportesPatio: React.FC = () => {
       {/* Lista de reportes */}
       <div className="space-y-4">
         {filteredReportes.map(reporte => (
-          <div 
+          <div
             key={reporte.id}
             className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-lg transition-shadow"
           >
@@ -186,14 +216,14 @@ const ListaReportesPatio: React.FC = () => {
                     {reporte.estado}
                   </span>
                 </div>
-                
+
                 {/* Usando EstudianteBadge con nombre y curso */}
                 <EstudianteBadge
                   nombre={reporte.estudiante_nombre || 'Sin nombre'}
                   curso={reporte.estudiante_curso}
                   size="md"
                 />
-                
+
                 <p className="text-xs text-slate-400 mt-2">
                   {reporte.lugar} • {new Date(reporte.created_at).toLocaleDateString()}
                 </p>
@@ -266,6 +296,13 @@ const ListaReportesPatio: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modal de Nuevo Reporte */}
+      <ReportePatioModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onSuccess={handleReporteCreado}
+      />
     </main>
   );
 };

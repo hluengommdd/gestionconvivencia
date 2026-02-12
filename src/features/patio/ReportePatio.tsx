@@ -1,11 +1,9 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
 import { AlertCircle, MapPin, Send, ShieldAlert, CheckCircle, Calendar, ChevronDown, ChevronUp, Users, Search, X } from 'lucide-react';
 import { useLocalDraft } from '@/shared/utils/useLocalDraft';
 import { useConvivencia } from '@/shared/context/ConvivenciaContext';
 import { supabase } from '@/shared/lib/supabaseClient';
-import ReportePatioModal from '@/features/dashboard/ReportePatioModal';
 
 type GravedadType = 'LEVE' | 'RELEVANTE' | 'GRAVE';
 
@@ -21,21 +19,12 @@ interface FormDataPatio {
 }
 
 const ReportePatio: React.FC = () => {
-  const location = useLocation();
   const { estudiantes } = useConvivencia();
   const [enviado, setEnviado] = useState(false);
-  const [showPatioModal, setShowPatioModal] = useState(false);
   const [selectedCurso, setSelectedCurso] = useState<string>('');
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchEstudiante, setSearchEstudiante] = useState('');
-  
-  // Detectar si debemos abrir el modal
-  useEffect(() => {
-    if (location.pathname === '/patio') {
-      setShowPatioModal(true);
-    }
-  }, [location.pathname]);
-  
+
   const [formData, setFormData, clearFormData] = useLocalDraft<FormDataPatio>('reporte:patio', {
     informante: '',
     estudianteId: null,
@@ -61,16 +50,16 @@ const ReportePatio: React.FC = () => {
   // Filtrar estudiantes por curso Y término de búsqueda
   const estudiantesDelCurso = useMemo(() => {
     if (!selectedCurso) return [];
-    
+
     let filtered = estudiantes.filter(est => est.curso === selectedCurso);
-    
+
     if (searchEstudiante.trim()) {
       const term = searchEstudiante.toLowerCase().trim();
-      filtered = filtered.filter(est => 
+      filtered = filtered.filter(est =>
         est.nombreCompleto.toLowerCase().includes(term)
       );
     }
-    
+
     return filtered;
   }, [estudiantes, selectedCurso, searchEstudiante]);
 
@@ -120,8 +109,8 @@ const ReportePatio: React.FC = () => {
           .maybeSingle();
 
         // Determinar fecha_incidente
-        const fechaIncidente = formData.fechaIncidente 
-          ? new Date(formData.fechaIncidente).toISOString() 
+        const fechaIncidente = formData.fechaIncidente
+          ? new Date(formData.fechaIncidente).toISOString()
           : new Date().toISOString();
 
         await supabase
@@ -173,12 +162,12 @@ const ReportePatio: React.FC = () => {
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   Informante (Nombre/Cargo)
                 </label>
-                <input 
+                <input
                   required
-                  type="text" 
+                  type="text"
                   className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-amber-500/5 focus:outline-none"
                   value={formData.informante}
-                  onChange={e => setFormData({...formData, informante: e.target.value})}
+                  onChange={e => setFormData({ ...formData, informante: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
@@ -208,7 +197,7 @@ const ReportePatio: React.FC = () => {
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
                 Estudiante(s) Involucrado(s)
               </label>
-              
+
               {selectedCurso ? (
                 <>
                   {/* Barra de resumen con botón expandir */}
@@ -269,9 +258,8 @@ const ReportePatio: React.FC = () => {
                               type="button"
                               key={est.id}
                               onClick={() => handleEstudianteSelect(est)}
-                              className={`w-full flex items-center p-3 hover:bg-amber-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors ${
-                                formData.estudianteId === est.id ? 'bg-amber-100' : ''
-                              }`}
+                              className={`w-full flex items-center p-3 hover:bg-amber-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors ${formData.estudianteId === est.id ? 'bg-amber-100' : ''
+                                }`}
                             >
                               <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
                                 <span className="text-xs font-bold text-amber-600">
@@ -288,8 +276,8 @@ const ReportePatio: React.FC = () => {
                           ))
                         ) : (
                           <div className="p-4 text-center text-slate-400 text-sm">
-                            {searchEstudiante 
-                              ? `No se encontró "${searchEstudiante}"` 
+                            {searchEstudiante
+                              ? `No se encontró "${searchEstudiante}"`
                               : 'Sin estudiantes'}
                           </div>
                         )}
@@ -349,10 +337,10 @@ const ReportePatio: React.FC = () => {
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center">
                   <MapPin className="w-3 h-3 mr-2" /> Lugar del Evento
                 </label>
-                <select 
+                <select
                   className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:outline-none"
                   value={formData.lugar}
-                  onChange={e => setFormData({...formData, lugar: e.target.value})}
+                  onChange={e => setFormData({ ...formData, lugar: e.target.value })}
                 >
                   <option value="">Seleccione lugar...</option>
                   <option value="PATIO">Patio Central</option>
@@ -366,11 +354,11 @@ const ReportePatio: React.FC = () => {
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center">
                   <Calendar className="w-3 h-3 mr-2" /> Fecha y Hora del Incidente
                 </label>
-                <input 
-                  type="datetime-local" 
+                <input
+                  type="datetime-local"
                   className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:outline-none"
                   value={formData.fechaIncidente}
-                  onChange={e => setFormData({...formData, fechaIncidente: e.target.value})}
+                  onChange={e => setFormData({ ...formData, fechaIncidente: e.target.value })}
                 />
               </div>
             </div>
@@ -385,10 +373,9 @@ const ReportePatio: React.FC = () => {
                   <button
                     key={g}
                     type="button"
-                    onClick={() => setFormData({...formData, gravedadPercibida: g})}
-                    className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${
-                      formData.gravedadPercibida === g ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-slate-400 border-slate-100'
-                    }`}
+                    onClick={() => setFormData({ ...formData, gravedadPercibida: g })}
+                    className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${formData.gravedadPercibida === g ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-slate-400 border-slate-100'
+                      }`}
                   >
                     {g}
                   </button>
@@ -401,17 +388,17 @@ const ReportePatio: React.FC = () => {
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                 Narración de los Hechos
               </label>
-              <textarea 
+              <textarea
                 required
                 className="w-full h-32 px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none resize-none"
                 placeholder="Describa brevemente lo sucedido..."
                 value={formData.descripcion}
-                onChange={e => setFormData({...formData, descripcion: e.target.value})}
+                onChange={e => setFormData({ ...formData, descripcion: e.target.value })}
               />
             </div>
 
             {/* Botón de envío */}
-            <button 
+            <button
               type="submit"
               className="w-full py-5 bg-slate-900 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-slate-800 transition-all flex items-center justify-center space-x-3 active:scale-95"
             >
@@ -421,12 +408,6 @@ const ReportePatio: React.FC = () => {
           </form>
         )}
       </div>
-
-      {/* Modal de Nuevo Reporte */}
-      <ReportePatioModal
-        isOpen={showPatioModal}
-        onClose={() => setShowPatioModal(false)}
-      />
     </main>
   );
 };
